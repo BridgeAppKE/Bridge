@@ -1,0 +1,87 @@
+// Bridge Platform Configuration
+// Copy this file to config.js and add your credentials
+
+const CONFIG = {
+    // Airtable Configuration
+    // Get your API key from: https://airtable.com/account
+    // Get your Base ID from: https://airtable.com/api (select your base)
+    AIRTABLE_API_KEY: 'YOUR_AIRTABLE_API_KEY_HERE',
+    AIRTABLE_BASE_ID: 'YOUR_BASE_ID_HERE',
+    
+    // Table Names (must match your Airtable exactly)
+    TABLES: {
+        AGENTS: 'Agents',
+        PROPERTIES: 'Properties',
+        DEVELOPER_PROJECTS: 'DeveloperProjects',
+        PROJECT_MEDIA: 'ProjectMedia',
+        CONNECTIONS: 'Connections',
+        PROPERTY_VIEWS: 'PropertyViews'
+    },
+    
+    // Agent Credentials for Simple Authentication
+    // Add your agents here with email: password format
+    VALID_AGENTS: {
+        'demo@bridge.co.ke': 'demo123',
+        'agent1@bridge.co.ke': 'bridge2024',
+        'agent2@bridge.co.ke': 'bridge2024',
+        // Add more agents as needed
+    },
+    
+    // Platform Settings
+    SETTINGS: {
+        PROPERTIES_PER_PAGE: 20,
+        CACHE_DURATION: 5 * 60 * 1000, // 5 minutes in milliseconds
+        DEFAULT_COMMISSION: 3, // Default commission percentage
+        DEFAULT_SPLIT: '50-50', // Default commission split
+        CURRENCY: 'KES',
+        DATE_FORMAT: 'DD/MM/YYYY'
+    },
+    
+    // Kenyan Areas (customize for your market)
+    AREAS: [
+        'Westlands',
+        'Kilimani', 
+        'Karen',
+        'Kileleshwa',
+        'Lavington',
+        'Runda',
+        'Muthaiga',
+        'Parklands',
+        'South B',
+        'South C',
+        'Langata',
+        'Ridgeways',
+        'Gigiri',
+        'Spring Valley',
+        'Loresho',
+        'Riverside',
+        'Upperhill',
+        'Hurlingham'
+    ],
+    
+    // Commission Split Options
+    COMMISSION_SPLITS: [
+        { value: '50-50', label: '50/50 - Equal split' },
+        { value: '60-40', label: '60/40 - Listing agent favor' },
+        { value: '40-60', label: '40/60 - Selling agent favor' },
+        { value: '70-30', label: '70/30 - Listing agent favor' },
+        { value: '30-70', label: '30/70 - Selling agent favor' }
+    ],
+    
+    // Property Types
+    PROPERTY_TYPES: [
+        'Apartment',
+        'House',
+        'Townhouse',
+        'Villa',
+        'Studio',
+        'Penthouse',
+        'Bungalow',
+        'Maisonette',
+        'Land',
+        'Commercial',
+        'Office Space',
+        'Retail Space',
+        'Warehouse'
+    ]
+};

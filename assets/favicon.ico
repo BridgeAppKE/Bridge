@@ -1,0 +1,9 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple Bridge Icon -->
+  <rect width="32" height="32" rx="4" fill="#000000"/>
+  <!-- Bridge pillars -->
+  <rect x="6" y="8" width="5" height="16" rx="1" fill="#FFFFFF"/>
+  <rect x="21" y="8" width="5" height="16" rx="1" fill="#FFFFFF"/>
+  <!-- Bridge deck -->
+  <path d="M6 16 Q16 12 26 16" stroke="#C9A961" stroke-width="3" fill="none"/>
+</svg>

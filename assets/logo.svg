@@ -1,0 +1,21 @@
+<svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bridge Logo Mark -->
+  <g id="bridge-logo">
+    <!-- Left pillar -->
+    <rect x="10" y="10" width="15" height="30" rx="2" fill="#000000"/>
+    <!-- Right pillar -->
+    <rect x="55" y="10" width="15" height="30" rx="2" fill="#000000"/>
+    <!-- Bridge deck (golden arch) -->
+    <path d="M10 25 Q40 15 70 25" stroke="#C9A961" stroke-width="4" fill="none"/>
+    <!-- Support cables -->
+    <path d="M17.5 10 L40 25 L62.5 10" stroke="#000000" stroke-width="2" fill="none"/>
+    <!-- Decorative dots -->
+    <circle cx="17.5" cy="10" r="2" fill="#C9A961"/>
+    <circle cx="40" cy="25" r="2" fill="#C9A961"/>
+    <circle cx="62.5" cy="10" r="2" fill="#C9A961"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="85" y="30" font-family="Playfair Display, serif" font-size="24" font-weight="700" fill="#000000">Bridge</text>
+  <text x="85" y="42" font-family="Inter, sans-serif" font-size="10" fill="#666666" letter-spacing="1">REAL ESTATE NETWORK</text>
+</svg>

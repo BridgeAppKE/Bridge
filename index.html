@@ -1062,60 +1062,54 @@
                                 
                                 <div class="form-group">
                                     <label class="form-label">Area <span style="color: var(--danger);">*</span></label>
-                                    <select class="form-select" name="area" id="areaSelect" required onchange="handleAreaChange(this.value)">
-                                        <option value="">Select area</option>
-                                        <optgroup label="Nairobi">
-                                            <option value="westlands">Westlands</option>
-                                            <option value="kilimani">Kilimani</option>
-                                            <option value="karen">Karen</option>
-                                            <option value="kileleshwa">Kileleshwa</option>
-                                            <option value="lavington">Lavington</option>
-                                            <option value="runda">Runda</option>
-                                            <option value="muthaiga">Muthaiga</option>
-                                            <option value="parklands">Parklands</option>
-                                            <option value="southb">South B</option>
-                                            <option value="southc">South C</option>
-                                            <option value="langata">Langata</option>
-                                            <option value="upperhill">Upper Hill</option>
-                                            <option value="riverside">Riverside</option>
-                                            <option value="loresho">Loresho</option>
-                                            <option value="gigiri">Gigiri</option>
-                                            <option value="spring_valley">Spring Valley</option>
+                                    <input type="text" 
+                                           class="form-input" 
+                                           name="area" 
+                                           id="areaInput"
+                                           list="areasList"
+                                           placeholder="Type area name or select from list"
+                                           required>
+                                    <datalist id="areasList">
+                                        <optgroup label="Popular Areas">
+                                            <option value="Westlands">
+                                            <option value="Kilimani">
+                                            <option value="Karen">
+                                            <option value="Kileleshwa">
+                                            <option value="Lavington">
+                                            <option value="Runda">
+                                            <option value="Muthaiga">
+                                            <option value="Parklands">
+                                            <option value="South B">
+                                            <option value="South C">
+                                            <option value="Langata">
+                                            <option value="Upper Hill">
+                                            <option value="Riverside">
+                                            <option value="Loresho">
+                                            <option value="Gigiri">
+                                            <option value="Spring Valley">
+                                            <option value="Syokimau">
+                                            <option value="Kitengela">
+                                            <option value="Rongai">
+                                            <option value="Ruiru">
+                                            <option value="Thika">
+                                            <option value="Kiambu">
+                                            <option value="Juja">
+                                            <option value="Athi River">
+                                            <option value="Mombasa">
+                                            <option value="Nyali">
+                                            <option value="Diani">
+                                            <option value="Malindi">
+                                            <option value="Kilifi">
+                                            <option value="Nakuru">
+                                            <option value="Kisumu">
+                                            <option value="Eldoret">
+                                            <option value="Nanyuki">
+                                            <option value="Naivasha">
+                                            <option value="Nyeri">
+                                            <option value="Meru">
                                         </optgroup>
-                                        <optgroup label="Nairobi Outskirts">
-                                            <option value="syokimau">Syokimau</option>
-                                            <option value="kitengela">Kitengela</option>
-                                            <option value="rongai">Rongai</option>
-                                            <option value="ruiru">Ruiru</option>
-                                            <option value="thika">Thika</option>
-                                            <option value="kiambu">Kiambu</option>
-                                            <option value="juja">Juja</option>
-                                            <option value="athi_river">Athi River</option>
-                                        </optgroup>
-                                        <optgroup label="Coast">
-                                            <option value="mombasa">Mombasa</option>
-                                            <option value="nyali">Nyali</option>
-                                            <option value="diani">Diani</option>
-                                            <option value="malindi">Malindi</option>
-                                            <option value="kilifi">Kilifi</option>
-                                            <option value="vipingo">Vipingo</option>
-                                        </optgroup>
-                                        <optgroup label="Other Towns">
-                                            <option value="nakuru">Nakuru</option>
-                                            <option value="kisumu">Kisumu</option>
-                                            <option value="eldoret">Eldoret</option>
-                                            <option value="nanyuki">Nanyuki</option>
-                                            <option value="naivasha">Naivasha</option>
-                                            <option value="nyeri">Nyeri</option>
-                                            <option value="meru">Meru</option>
-                                        </optgroup>
-                                        <option value="other">Other (Specify)</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group" id="customAreaField" style="display: none;">
-                                    <label class="form-label">Specify Area <span style="color: var(--danger);">*</span></label>
-                                    <input type="text" class="form-input" name="custom_area" placeholder="Enter area name">
+                                    </datalist>
+                                    <small style="color: var(--text-secondary);">Start typing or select from suggestions</small>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1763,16 +1757,6 @@
                     navigateTo('auth');
                 }
             });
-            
-            // Populate area filters
-            const filterContainer = document.getElementById('areaFilters');
-            KENYA_AREAS.forEach(area => {
-                const pill = document.createElement('div');
-                pill.className = 'filter-pill';
-                pill.textContent = area;
-                pill.onclick = () => filterByArea(area.toLowerCase().replace(' ', ''));
-                filterContainer.appendChild(pill);
-            });
         }
 
         // Navigation
@@ -1782,16 +1766,16 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             
             // Show page
-            document.getElementById(`${page}Page`).classList.add('active');
+            const pageElement = document.getElementById(`${page}Page`);
+            if (pageElement) {
+                pageElement.classList.add('active');
+            }
             
             // Update nav active state
             const navItems = document.querySelectorAll('.nav-item');
-            switch(page) {
-                case 'home': navItems[0].classList.add('active'); break;
-                case 'developers': navItems[1].classList.add('active'); break;
-                case 'add': navItems[2].classList.add('active'); break;
-                case 'saved': navItems[3].classList.add('active'); break;
-                case 'profile': navItems[4].classList.add('active'); break;
+            const pageIndex = ['home', 'developers', 'add', 'saved', 'profile'].indexOf(page);
+            if (pageIndex !== -1 && navItems[pageIndex]) {
+                navItems[pageIndex].classList.add('active');
             }
             
             currentPage = page;
@@ -1801,7 +1785,13 @@
                 loadSavedProperties();
             } else if (page === 'profile') {
                 loadProfile();
+            } else if (page === 'add') {
+                // Reset form when navigating to add page
+                resetListingForm();
             }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
         }
 
         // Auth Functions
@@ -2183,35 +2173,59 @@
             if (!validateStep(5)) return;
             
             const formData = new FormData(event.target);
-            const listingType = formData.get('listing_type');
+            const propertyType = formData.get('property_type');
+            const isLand = propertyType.includes('land');
             
             // Collect features
             const features = Array.from(document.querySelectorAll('input[name="features"]:checked'))
                 .map(cb => cb.value);
             
+            // Get the correct listing type
+            const activeListingType = document.querySelector('.pricing-toggle-option.active').id.replace('Toggle', '');
+            
             // Prepare listing data
             const listing = {
                 title: formData.get('title'),
-                property_type: formData.get('property_type'),
+                property_type: propertyType,
                 area: formData.get('area'),
                 address: formData.get('address'),
-                bedrooms: parseInt(formData.get('bedrooms') || 0),
-                bathrooms: parseFloat(formData.get('bathrooms') || 0),
-                size: parseInt(formData.get('size') || 0),
-                parking: parseInt(formData.get('parking') || 0),
-                condition: formData.get('condition'),
-                year_built: parseInt(formData.get('year_built') || 0),
                 features: features,
                 description: formData.get('description'),
                 virtual_tour_link: formData.get('virtual_tour'),
-                listing_type: listingType,
-                price: parseInt(listingType === 'sale' ? formData.get('price') : formData.get('rent')),
+                listing_type: activeListingType,
                 commission: parseFloat(formData.get('commission')),
                 commission_split: formData.get('commission_split'),
-                negotiable: formData.get('negotiable') ? true : false,
+                negotiable: formData.get('negotiable') === 'on',
+                visibility: formData.get('visibility') || 'public',
                 agent_id: currentUser.id,
-                status: 'pending'
+                status: 'active' // Auto-approve for now
             };
+            
+            // Add type-specific fields
+            if (isLand) {
+                listing.land_size = formData.get('land_size');
+                listing.dimensions = formData.get('dimensions');
+                listing.title_status = formData.get('title_status');
+                listing.soil_type = formData.get('soil_type');
+                listing.topography = formData.get('topography');
+            } else {
+                listing.bedrooms = parseInt(formData.get('bedrooms') || 0);
+                listing.bathrooms = parseFloat(formData.get('bathrooms') || 0);
+                listing.size = parseInt(formData.get('size') || 0);
+                listing.parking = parseInt(formData.get('parking') || 0);
+                listing.condition = formData.get('condition');
+                listing.year_built = parseInt(formData.get('year_built') || 0);
+            }
+            
+            // Add pricing based on type
+            if (activeListingType === 'sale') {
+                listing.price = parseInt(formData.get('price'));
+            } else if (activeListingType === 'rent') {
+                listing.price = parseInt(formData.get('rent'));
+            } else if (activeListingType === 'lease') {
+                listing.price = parseInt(formData.get('lease_price'));
+                listing.lease_period = formData.get('lease_period');
+            }
             
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
@@ -2256,13 +2270,24 @@
                     }
                 }
                 
-                showToast('Property submitted successfully! We\'ll review and approve it soon.');
+                // Auto-save the property
+                await supabaseClient
+                    .from('saved_properties')
+                    .insert({
+                        agent_id: currentUser.id,
+                        property_id: propertyData.id
+                    });
+                
+                showToast('Property listed successfully! 🎉');
                 event.target.reset();
                 selectedImages = [];
                 document.getElementById('imagePreview').innerHTML = '';
                 currentStep = 1;
                 updateFormProgress();
-                setTimeout(() => navigateTo('home'), 2000);
+                
+                // Reload properties and navigate to home
+                await loadProperties();
+                setTimeout(() => navigateTo('home'), 1500);
                 
             } catch (error) {
                 console.error('Error submitting listing:', error);

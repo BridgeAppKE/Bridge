@@ -859,6 +859,12 @@
                     <button class="btn btn-outline btn-block" onclick="showSignup()">
                         Create Account
                     </button>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a href="#" onclick="showForgotPassword()" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- Signup Form -->
@@ -902,6 +908,31 @@
                     <button class="btn btn-outline btn-block" onclick="showLogin()">
                         Sign In
                     </button>
+                </div>
+                
+                <!-- Forgot Password Form -->
+                <div id="forgotPasswordForm" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h3>Reset Your Password</h3>
+                        <p style="color: var(--text-secondary);">Enter your email to receive a password reset link</p>
+                    </div>
+                    
+                    <form onsubmit="handleForgotPassword(event)">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="resetEmail" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block" id="resetBtn">
+                            Send Reset Link
+                        </button>
+                    </form>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a href="#" onclick="showLogin()" style="color: var(--primary); text-decoration: none;">
+                            Back to Sign In
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1333,6 +1364,9 @@
                             <button class="btn btn-outline btn-sm" onclick="editProfile()">
                                 <i class="fas fa-edit"></i> Edit Profile
                             </button>
+                            <button class="btn btn-outline btn-sm" onclick="showChangePassword()">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
                             <button class="btn btn-outline btn-sm" onclick="handleLogout()">
                                 <i class="fas fa-sign-out-alt"></i> Sign Out
                             </button>
@@ -1367,6 +1401,36 @@
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal()">Close</button>
                 <button class="btn btn-primary" id="modalActionBtn">Contact Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal" onclick="closeModalOnOutside(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="btn btn-sm btn-outline" onclick="closeChangePasswordModal()" style="padding: 0.5rem; width: 32px; height: 32px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleChangePassword(event)">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-input" id="newPassword" required minlength="6">
+                        <small style="color: var(--text-secondary);">Minimum 6 characters</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-input" id="confirmPassword" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block" id="changePasswordBtn">
+                        Update Password
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -1477,11 +1541,87 @@
         function showLogin() {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
         }
 
         function showSignup() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('signupForm').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+        }
+
+        function showForgotPassword() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            
+            const btn = document.getElementById('resetBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/Bridge/`,
+                });
+                
+                if (error) throw error;
+                
+                showToast('Password reset link sent! Check your email.');
+                showLogin();
+                
+            } catch (error) {
+                showToast(error.message || 'Failed to send reset link.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Reset Link';
+            }
+        }
+
+        function showChangePassword() {
+            document.getElementById('changePasswordModal').classList.add('active');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+
+        async function handleChangePassword(event) {
+            event.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match!', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('changePasswordBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    password: newPassword
+                });
+                
+                if (error) throw error;
+                
+                showToast('Password updated successfully!');
+                closeChangePasswordModal();
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+            } catch (error) {
+                showToast(error.message || 'Failed to update password.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Update Password';
+            }
         }
 
         async function handleLogin(event) {
@@ -1500,6 +1640,27 @@
                 });
                 
                 if (error) throw error;
+                
+                // Check if agent profile exists, create if not
+                if (data.user) {
+                    const { data: agentData, error: agentError } = await supabaseClient
+                        .from('agents')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+                    
+                    // If no agent profile exists, create one
+                    if (agentError && agentError.code === 'PGRST116') {
+                        await supabaseClient
+                            .from('agents')
+                            .insert({
+                                id: data.user.id,
+                                full_name: data.user.user_metadata.full_name || email.split('@')[0],
+                                phone: data.user.user_metadata.phone || '',
+                                agency: data.user.user_metadata.agency || null
+                            });
+                    }
+                }
                 
                 showToast('Welcome back!');
                 
@@ -1539,19 +1700,8 @@
                 
                 if (authError) throw authError;
                 
-                // Create agent profile
-                if (authData.user) {
-                    const { error: profileError } = await supabaseClient
-                        .from('agents')
-                        .insert({
-                            id: authData.user.id,
-                            full_name: name,
-                            phone: phone,
-                            agency: agency || null
-                        });
-                        
-                    if (profileError) throw profileError;
-                }
+                // Don't try to create agent profile here - let the trigger handle it
+                // or create it on first login
                 
                 showToast('Account created successfully! Please check your email to verify your account.');
                 showLogin();

@@ -2588,6 +2588,109 @@
             }, 3000);
         }
 
+        function renderDeveloperProjects() {
+            const container = document.getElementById('developerList');
+            
+            if (developerProjects.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); grid-column: 1/-1;">No developer projects available</p>';
+                return;
+            }
+            
+            container.innerHTML = developerProjects.map(project => `
+                <div class="card property-card" onclick="showDeveloperDetails('${project.id}')">
+                    <img src="https://via.placeholder.com/400x200?text=Developer+Project" 
+                         alt="${project.project_name}" class="card-image">
+                    <div class="card-body">
+                        <h5>${project.project_name}</h5>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">by ${project.developer_name}</p>
+                        <div class="property-price">
+                            From KES ${formatPrice(project.price_from)}
+                        </div>
+                        <div class="property-location">
+                            <i class="fas fa-map-marker-alt"></i> ${project.area}
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <span style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; 
+                                       border-radius: var(--radius); font-size: 0.875rem;">
+                                ${project.commission}% Commission
+                            </span>
+                            <span style="margin-left: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                                ${project.units_available} units available
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showDeveloperDetails(projectId) {
+            const project = developerProjects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            document.getElementById('modalTitle').textContent = project.project_name;
+            document.getElementById('modalBody').innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <img src="https://via.placeholder.com/600x300?text=Developer+Project" 
+                         alt="${project.project_name}" style="width: 100%; height: 300px; object-fit: cover; border-radius: var(--radius);">
+                </div>
+                
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">by ${project.developer_name}</p>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h5>Project Details</h5>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <strong>Price Range:</strong><br>
+                            KES ${formatPrice(project.price_from)} - ${formatPrice(project.price_to)}
+                        </div>
+                        <div>
+                            <strong>Units:</strong><br>
+                            ${project.units_available} of ${project.total_units} available
+                        </div>
+                        <div>
+                            <strong>Commission:</strong><br>
+                            ${project.commission}%
+                        </div>
+                        <div>
+                            <strong>Completion:</strong><br>
+                            ${project.completion_date || 'TBD'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h5>Description</h5>
+                    <p style="color: var(--text-secondary);">${project.description || 'No description available'}</p>
+                </div>
+                
+                ${project.amenities?.length > 0 ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5>Amenities</h5>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${project.amenities.map(a => `
+                                <span style="background: var(--bg-tertiary); padding: 0.25rem 0.75rem; 
+                                           border-radius: var(--radius); font-size: 0.875rem;">
+                                    ${a}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius);">
+                    <h5 style="margin-bottom: 0.5rem;">Contact Developer</h5>
+                    ${project.contact_name ? `<p><strong>${project.contact_name}</strong></p>` : ''}
+                    ${project.contact_phone ? `<p><i class="fas fa-phone"></i> ${project.contact_phone}</p>` : ''}
+                    ${project.contact_email ? `<p><i class="fas fa-envelope"></i> ${project.contact_email}</p>` : ''}
+                    ${!project.contact_phone && !project.contact_email ? 
+                        '<p style="color: var(--text-secondary);">Contact information not available</p>' : ''}
+                </div>
+            `;
+            
+            document.getElementById('modalActionBtn').style.display = 'none';
+            document.getElementById('propertyModal').classList.add('active');
+        }
+
         // Remove mock data loading and update initialization
         document.addEventListener('DOMContentLoaded', init);
     </script>

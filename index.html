@@ -748,21 +748,23 @@
                 grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             }
             
+            .main {
+                padding-bottom: 80px; /* Keep bottom padding for nav */
+            }
+            
+            /* Keep bottom nav visible on desktop */
             .nav {
-                position: static;
-                border-top: none;
-                border-bottom: 1px solid var(--border);
-                box-shadow: none;
+                position: fixed;
+                bottom: 0;
+                background: var(--bg-primary);
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
             }
             
             .nav-content {
                 max-width: 1280px;
                 margin: 0 auto;
                 padding: 0 2rem;
-            }
-            
-            .main {
-                padding-bottom: 0;
             }
         }
 
@@ -1026,7 +1028,7 @@
                                 
                                 <div class="form-group">
                                     <label class="form-label">Property Type <span style="color: var(--danger);">*</span></label>
-                                    <select class="form-select" name="property_type" required>
+                                    <select class="form-select" name="property_type" required onchange="handlePropertyTypeChange(this.value)">
                                         <option value="">Select type</option>
                                         <optgroup label="Residential">
                                             <option value="apartment">Apartment</option>
@@ -1034,15 +1036,21 @@
                                             <option value="townhouse">Townhouse</option>
                                             <option value="villa">Villa</option>
                                             <option value="studio">Studio</option>
+                                            <option value="maisonette">Maisonette</option>
+                                            <option value="penthouse">Penthouse</option>
                                         </optgroup>
                                         <optgroup label="Commercial">
-                                            <option value="office">Office</option>
-                                            <option value="retail">Retail</option>
+                                            <option value="office">Office Space</option>
+                                            <option value="retail">Retail/Shop</option>
                                             <option value="warehouse">Warehouse</option>
+                                            <option value="showroom">Showroom</option>
+                                            <option value="restaurant">Restaurant/Bar</option>
                                         </optgroup>
                                         <optgroup label="Land">
                                             <option value="residential_land">Residential Land</option>
                                             <option value="commercial_land">Commercial Land</option>
+                                            <option value="agricultural_land">Agricultural Land</option>
+                                            <option value="industrial_land">Industrial Land</option>
                                         </optgroup>
                                     </select>
                                 </div>
@@ -1054,21 +1062,60 @@
                                 
                                 <div class="form-group">
                                     <label class="form-label">Area <span style="color: var(--danger);">*</span></label>
-                                    <select class="form-select" name="area" required>
+                                    <select class="form-select" name="area" id="areaSelect" required onchange="handleAreaChange(this.value)">
                                         <option value="">Select area</option>
-                                        <option value="westlands">Westlands</option>
-                                        <option value="kilimani">Kilimani</option>
-                                        <option value="karen">Karen</option>
-                                        <option value="kileleshwa">Kileleshwa</option>
-                                        <option value="lavington">Lavington</option>
-                                        <option value="runda">Runda</option>
-                                        <option value="muthaiga">Muthaiga</option>
-                                        <option value="parklands">Parklands</option>
-                                        <option value="southb">South B</option>
-                                        <option value="southc">South C</option>
-                                        <option value="langata">Langata</option>
-                                        <option value="other">Other</option>
+                                        <optgroup label="Nairobi">
+                                            <option value="westlands">Westlands</option>
+                                            <option value="kilimani">Kilimani</option>
+                                            <option value="karen">Karen</option>
+                                            <option value="kileleshwa">Kileleshwa</option>
+                                            <option value="lavington">Lavington</option>
+                                            <option value="runda">Runda</option>
+                                            <option value="muthaiga">Muthaiga</option>
+                                            <option value="parklands">Parklands</option>
+                                            <option value="southb">South B</option>
+                                            <option value="southc">South C</option>
+                                            <option value="langata">Langata</option>
+                                            <option value="upperhill">Upper Hill</option>
+                                            <option value="riverside">Riverside</option>
+                                            <option value="loresho">Loresho</option>
+                                            <option value="gigiri">Gigiri</option>
+                                            <option value="spring_valley">Spring Valley</option>
+                                        </optgroup>
+                                        <optgroup label="Nairobi Outskirts">
+                                            <option value="syokimau">Syokimau</option>
+                                            <option value="kitengela">Kitengela</option>
+                                            <option value="rongai">Rongai</option>
+                                            <option value="ruiru">Ruiru</option>
+                                            <option value="thika">Thika</option>
+                                            <option value="kiambu">Kiambu</option>
+                                            <option value="juja">Juja</option>
+                                            <option value="athi_river">Athi River</option>
+                                        </optgroup>
+                                        <optgroup label="Coast">
+                                            <option value="mombasa">Mombasa</option>
+                                            <option value="nyali">Nyali</option>
+                                            <option value="diani">Diani</option>
+                                            <option value="malindi">Malindi</option>
+                                            <option value="kilifi">Kilifi</option>
+                                            <option value="vipingo">Vipingo</option>
+                                        </optgroup>
+                                        <optgroup label="Other Towns">
+                                            <option value="nakuru">Nakuru</option>
+                                            <option value="kisumu">Kisumu</option>
+                                            <option value="eldoret">Eldoret</option>
+                                            <option value="nanyuki">Nanyuki</option>
+                                            <option value="naivasha">Naivasha</option>
+                                            <option value="nyeri">Nyeri</option>
+                                            <option value="meru">Meru</option>
+                                        </optgroup>
+                                        <option value="other">Other (Specify)</option>
                                     </select>
+                                </div>
+                                
+                                <div class="form-group" id="customAreaField" style="display: none;">
+                                    <label class="form-label">Specify Area <span style="color: var(--danger);">*</span></label>
+                                    <input type="text" class="form-input" name="custom_area" placeholder="Enter area name">
                                 </div>
                                 
                                 <div class="form-group">
@@ -1086,54 +1133,104 @@
                             <div class="card-body">
                                 <h4 style="margin-bottom: 1.5rem;">Property Details</h4>
                                 
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <!-- Residential/Commercial Properties -->
+                                <div id="buildingDetails">
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                        <div class="form-group">
+                                            <label class="form-label">Bedrooms</label>
+                                            <select class="form-select" name="bedrooms">
+                                                <option value="0">Studio/Bedsitter</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5+</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Bathrooms</label>
+                                            <select class="form-select" name="bathrooms">
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4+</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Floor Size (sqm)</label>
+                                            <input type="number" class="form-input" name="size" placeholder="e.g., 120">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Parking Spaces</label>
+                                            <input type="number" class="form-input" name="parking" placeholder="e.g., 2" min="0">
+                                        </div>
+                                    </div>
+                                    
                                     <div class="form-group">
-                                        <label class="form-label">Bedrooms</label>
-                                        <select class="form-select" name="bedrooms">
-                                            <option value="0">Studio</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4</option>
-                                            <option value="5">5+</option>
+                                        <label class="form-label">Property Condition</label>
+                                        <select class="form-select" name="condition">
+                                            <option value="brand_new">Brand New</option>
+                                            <option value="excellent">Excellent</option>
+                                            <option value="good">Good</option>
+                                            <option value="fair">Fair</option>
+                                            <option value="needs_work">Needs Work</option>
                                         </select>
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label class="form-label">Bathrooms</label>
-                                        <select class="form-select" name="bathrooms">
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4+</option>
+                                        <label class="form-label">Year Built</label>
+                                        <input type="number" class="form-input" name="year_built" placeholder="e.g., 2020" min="1950" max="2024">
+                                    </div>
+                                </div>
+                                
+                                <!-- Land Properties -->
+                                <div id="landDetails" style="display: none;">
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                        <div class="form-group">
+                                            <label class="form-label">Land Size <span style="color: var(--danger);">*</span></label>
+                                            <input type="text" class="form-input" name="land_size" placeholder="e.g., 0.25 acres, 50x100">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Dimensions</label>
+                                            <input type="text" class="form-input" name="dimensions" placeholder="e.g., 50ft x 100ft">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Title Deed Status</label>
+                                        <select class="form-select" name="title_status">
+                                            <option value="ready">Ready Title Deed</option>
+                                            <option value="processing">Title in Process</option>
+                                            <option value="mother_title">Mother Title Available</option>
+                                            <option value="no_title">No Title</option>
                                         </select>
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label class="form-label">Size (sqm)</label>
-                                        <input type="number" class="form-input" name="size" placeholder="e.g., 120">
+                                        <label class="form-label">Soil Type</label>
+                                        <select class="form-select" name="soil_type">
+                                            <option value="">Not Specified</option>
+                                            <option value="red_soil">Red Soil</option>
+                                            <option value="black_cotton">Black Cotton</option>
+                                            <option value="loam">Loam</option>
+                                            <option value="sandy">Sandy</option>
+                                            <option value="clay">Clay</option>
+                                        </select>
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label class="form-label">Parking Spaces</label>
-                                        <input type="number" class="form-input" name="parking" placeholder="e.g., 2" min="0">
+                                        <label class="form-label">Topography</label>
+                                        <select class="form-select" name="topography">
+                                            <option value="flat">Flat</option>
+                                            <option value="gentle_slope">Gentle Slope</option>
+                                            <option value="steep_slope">Steep Slope</option>
+                                            <option value="hilly">Hilly</option>
+                                        </select>
                                     </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Property Condition</label>
-                                    <select class="form-select" name="condition">
-                                        <option value="brand_new">Brand New</option>
-                                        <option value="excellent">Excellent</option>
-                                        <option value="good">Good</option>
-                                        <option value="fair">Fair</option>
-                                        <option value="needs_work">Needs Work</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Year Built</label>
-                                    <input type="number" class="form-input" name="year_built" placeholder="e.g., 2020" min="1950" max="2024">
                                 </div>
                             </div>
                         </div>
@@ -1145,67 +1242,128 @@
                             <div class="card-body">
                                 <h4 style="margin-bottom: 1.5rem;">Features & Amenities</h4>
                                 
-                                <div class="form-group">
-                                    <label class="form-label">Interior Features</label>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="master_ensuite"> Master Ensuite
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="walk_in_closet"> Walk-in Closet
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="kitchen_island"> Kitchen Island
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="pantry"> Pantry
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="laundry_room"> Laundry Room
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="study_room"> Study Room
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="fireplace"> Fireplace
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="air_conditioning"> Air Conditioning
-                                        </label>
+                                <!-- Building Features -->
+                                <div id="buildingFeatures">
+                                    <div class="form-group">
+                                        <label class="form-label">Interior Features</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="master_ensuite"> Master Ensuite
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="walk_in_closet"> Walk-in Closet
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="kitchen_island"> Kitchen Island
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="pantry"> Pantry
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="laundry_room"> Laundry Room
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="study_room"> Study Room
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="fireplace"> Fireplace
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="air_conditioning"> Air Conditioning
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">External Features</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="garden"> Garden
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="swimming_pool"> Swimming Pool
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="gym"> Gym
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="playground"> Playground
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="rooftop"> Rooftop Access
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="backup_generator"> Backup Generator
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="borehole"> Borehole
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="dsq"> DSQ
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label class="form-label">External Features</label>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="garden"> Garden
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="swimming_pool"> Swimming Pool
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="gym"> Gym
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="playground"> Playground
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="rooftop"> Rooftop Access
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="backup_generator"> Backup Generator
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="borehole"> Borehole
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                            <input type="checkbox" name="features" value="dsq"> DSQ
-                                        </label>
+                                <!-- Land Features -->
+                                <div id="landFeatures" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">Land Features</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="fenced"> Fully Fenced
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="gated"> Gated
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="corner_plot"> Corner Plot
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="main_road"> Main Road Frontage
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="electricity"> Electricity Connected
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="water"> Water Connected
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="sewer"> Sewer Connected
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="subdivision_ready"> Ready for Subdivision
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Suitable For</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="residential_development"> Residential Development
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="commercial_development"> Commercial Development
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="farming"> Farming
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="ranching"> Ranching
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="warehouse"> Warehouse/Storage
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                                <input type="checkbox" name="features" value="mixed_use"> Mixed Use Development
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="form-group">
+                                <!-- Security Features (common) -->
+                                <div class="form-group" id="securityFeatures">
                                     <label class="form-label">Security Features</label>
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
                                         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -1270,26 +1428,45 @@
                                 
                                 <div class="form-group">
                                     <label class="form-label">Listing Type <span style="color: var(--danger);">*</span></label>
-                                    <div style="display: flex; gap: 1rem;">
-                                        <label style="flex: 1;">
-                                            <input type="radio" name="listing_type" value="sale" checked onchange="toggleListingType()">
-                                            For Sale
-                                        </label>
-                                        <label style="flex: 1;">
-                                            <input type="radio" name="listing_type" value="rent" onchange="toggleListingType()">
-                                            For Rent
-                                        </label>
+                                    <div class="pricing-toggle">
+                                        <div class="pricing-toggle-option active" onclick="togglePricingType('sale')" id="saleToggle">For Sale</div>
+                                        <div class="pricing-toggle-option" onclick="togglePricingType('rent')" id="rentToggle">For Rent</div>
+                                        <div class="pricing-toggle-option" onclick="togglePricingType('lease')" id="leaseToggle">For Lease</div>
                                     </div>
                                 </div>
                                 
-                                <div id="salePrice" class="form-group">
-                                    <label class="form-label">Sale Price (KES) <span style="color: var(--danger);">*</span></label>
-                                    <input type="number" class="form-input" name="price" placeholder="e.g., 15000000" min="0">
+                                <div id="salePricing">
+                                    <div class="form-group">
+                                        <label class="form-label">Sale Price (KES) <span style="color: var(--danger);">*</span></label>
+                                        <input type="number" class="form-input" name="price" placeholder="e.g., 15000000" min="0">
+                                    </div>
                                 </div>
                                 
-                                <div id="rentPrice" class="form-group" style="display: none;">
-                                    <label class="form-label">Monthly Rent (KES) <span style="color: var(--danger);">*</span></label>
-                                    <input type="number" class="form-input" name="rent" placeholder="e.g., 150000" min="0">
+                                <div id="rentPricing" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">Monthly Rent (KES) <span style="color: var(--danger);">*</span></label>
+                                        <input type="number" class="form-input" name="rent" placeholder="e.g., 150000" min="0">
+                                    </div>
+                                </div>
+                                
+                                <div id="leasePricing" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">Lease Period</label>
+                                        <select class="form-select" name="lease_period">
+                                            <option value="negotiable">Negotiable</option>
+                                            <option value="1_year">1 Year</option>
+                                            <option value="2_years">2 Years</option>
+                                            <option value="5_years">5 Years</option>
+                                            <option value="10_years">10 Years</option>
+                                            <option value="25_years">25 Years</option>
+                                            <option value="50_years">50 Years</option>
+                                            <option value="99_years">99 Years</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Lease Price (KES) <span style="color: var(--danger);">*</span></label>
+                                        <input type="number" class="form-input" name="lease_price" placeholder="Total lease amount" min="0">
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1382,6 +1559,20 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="card" style="margin-top: 1rem;">
+                    <div class="card-body">
+                        <h4>Quick Actions</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+                            <button class="btn btn-outline btn-sm" onclick="showFeedbackModal()">
+                                <i class="fas fa-comment-dots"></i> Send Feedback
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="showReferralModal()">
+                                <i class="fas fa-user-plus"></i> Refer an Agent
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -1429,6 +1620,82 @@
                     
                     <button type="submit" class="btn btn-primary btn-block" id="changePasswordBtn">
                         Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal" onclick="closeModalOnOutside(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Send Feedback</h3>
+                <button class="btn btn-sm btn-outline" onclick="closeFeedbackModal()" style="padding: 0.5rem; width: 32px; height: 32px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleFeedback(event)">
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="feedbackType" required>
+                            <option value="suggestion">Suggestion</option>
+                            <option value="bug">Bug Report</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="general">General Feedback</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Your Message</label>
+                        <textarea class="form-textarea" id="feedbackMessage" rows="5" required placeholder="Tell us what's on your mind..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block" id="feedbackBtn">
+                        Send Feedback
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Modal -->
+    <div id="referralModal" class="modal" onclick="closeModalOnOutside(event)">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Refer an Agent</h3>
+                <button class="btn btn-sm btn-outline" onclick="closeReferralModal()" style="padding: 0.5rem; width: 32px; height: 32px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    Know a great real estate agent? Refer them to Bridge and earn rewards when they join!
+                </p>
+                <form onsubmit="handleReferral(event)">
+                    <div class="form-group">
+                        <label class="form-label">Agent's Name</label>
+                        <input type="text" class="form-input" id="referralName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Agent's Email</label>
+                        <input type="email" class="form-input" id="referralEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Agent's Phone</label>
+                        <input type="tel" class="form-input" id="referralPhone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Agency (Optional)</label>
+                        <input type="text" class="form-input" id="referralAgency">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block" id="referralBtn">
+                        Send Referral
                     </button>
                 </form>
             </div>
@@ -1861,7 +2128,7 @@
                             image_url,
                             display_order
                         ),
-                        agents (
+                        agent:agents!agent_id (
                             full_name,
                             agency
                         )
@@ -1877,6 +2144,9 @@
             } catch (error) {
                 console.error('Error loading properties:', error);
                 showToast('Failed to load properties', 'error');
+                // Show empty state
+                document.getElementById('propertyList').innerHTML = 
+                    '<p style="text-align: center; color: var(--text-secondary); grid-column: 1/-1;">No properties available at the moment.</p>';
             }
         }
 

@@ -1,0 +1,94 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import type { Expense } from "@/lib/types/database";
+
+const EXPENSE_CATEGORIES = [
+  "Cleaning",
+  "Utilities",
+  "Maintenance",
+  "Supplies",
+  "Staff",
+  "Other",
+] as const;
+
+export async function getExpenseCategories() {
+  return EXPENSE_CATEGORIES;
+}
+
+export async function createExpense(formData: FormData) {
+  const propertyId = formData.get("property_id") as string;
+  const amountKes = parseFloat(formData.get("amount_kes") as string);
+  const category = formData.get("category") as string;
+  const date = formData.get("date") as string;
+  const receiptUrl = (formData.get("receipt_url") as string) || null;
+
+  if (!propertyId || isNaN(amountKes) || !category || !date) {
+    return { error: "All fields except receipt are required." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("expenses").insert({
+    property_id: propertyId,
+    amount_kes: amountKes,
+    category,
+    date,
+    receipt_url: receiptUrl,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/expenses");
+  revalidatePath("/home");
+  return { success: true };
+}
+
+export type ExpenseWithProperty = Expense & {
+  properties: { name: string } | null;
+};
+
+export async function getExpenses(
+  propertyId?: string
+): Promise<ExpenseWithProperty[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("expenses")
+    .select("*, properties(name)")
+    .order("date", { ascending: false });
+
+  if (propertyId) {
+    query = query.eq("property_id", propertyId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ExpenseWithProperty[];
+}
+
+export async function uploadReceipt(formData: FormData) {
+  const file = formData.get("file") as File;
+
+  if (!file || file.size === 0) {
+    return { error: "No file provided" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${user.id}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("receipts")
+    .upload(path, file, { upsert: false });
+
+  if (error) return { error: error.message };
+
+  return { success: true, url: path, path };
+}

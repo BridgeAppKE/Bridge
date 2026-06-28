@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createDataClient, getSessionUser } from "@/lib/supabase/server";
+import { isPastDate } from "@/lib/inventory/consumption";
+import { bookingNights } from "@/lib/inventory/consumption";
 
 export type BookingInput = {
   external_uid?: string;
@@ -79,6 +81,14 @@ export async function blockDates(formData: FormData) {
     return { error: "Unit and dates are required." };
   }
 
+  if (isPastDate(startDate) || isPastDate(endDate)) {
+    return { error: "Cannot block dates in the past." };
+  }
+
+  if (endDate <= startDate) {
+    return { error: "End date must be after start date." };
+  }
+
   return upsertBookingsFromSync(propertyId, [
     {
       start_date: startDate,
@@ -87,6 +97,38 @@ export async function blockDates(formData: FormData) {
       external_uid: `manual-${propertyId}-${startDate}-${endDate}`,
     },
   ]);
+}
+
+export async function clearManualBlock(bookingId: string) {
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .select("id, is_manual_block, properties(owner_id)")
+    .eq("id", bookingId)
+    .single();
+
+  if (error || !booking) return { error: "Booking not found" };
+
+  const props = Array.isArray(booking.properties)
+    ? booking.properties[0]
+    : booking.properties;
+  const ownerId = (props as { owner_id: string } | null | undefined)?.owner_id;
+  if (ownerId !== user.id) return { error: "Unauthorized" };
+
+  if (!booking.is_manual_block) {
+    return { error: "Only manual blocks can be cleared here. Guest bookings sync from your channel." };
+  }
+
+  const { error: deleteError } = await supabase.from("bookings").delete().eq("id", bookingId);
+  if (deleteError) return { error: deleteError.message };
+
+  revalidatePath("/calendar");
+  revalidatePath("/home");
+  revalidatePath("/circles");
+  return { success: true };
 }
 
 export async function getBookingsForProperty(propertyId: string) {
@@ -136,12 +178,14 @@ export async function finalizeBooking(bookingId: string, guestCount: number) {
     .update({ guest_count: guestCount })
     .eq("id", bookingId);
 
-  const { deductInventoryForGuests } = await import("@/lib/actions/inventory");
-  await deductInventoryForGuests(property.id, guestCount);
+  const nights = bookingNights(booking.start_date, booking.end_date);
+  const { deductInventoryForStay } = await import("@/lib/actions/inventory-v2");
+  await deductInventoryForStay(property.id, guestCount, nights);
 
   revalidatePath("/inventory");
   revalidatePath("/home");
-  return { success: true };
+  revalidatePath("/unit");
+  return { success: true, nights, guestCount };
 }
 
 export async function updateUnitLastSynced(propertyId: string, syncedAt: string) {

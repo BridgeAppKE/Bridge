@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ManageCircleSheet } from "@/components/circles/manage-circle-sheet";
 import type { PeerAvailabilityRow } from "@/lib/actions/circles";
 import type { CircleGroup } from "@/lib/actions/circles";
+import { todayIsoDate } from "@/lib/inventory/consumption";
 import { pageShellClass, pageTitleClass, pageSubtitleClass, sectionLabelClass } from "@/lib/design/tokens";
 
 interface CirclesReferralClientProps {
@@ -25,8 +26,13 @@ export function CirclesReferralClient({
   hostShortCode,
   inviteUrl,
 }: CirclesReferralClientProps) {
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const today = todayIsoDate();
+  const [checkIn, setCheckIn] = useState(today);
+  const [checkOut, setCheckOut] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().slice(0, 10);
+  });
   const [bedrooms, setBedrooms] = useState<number | "any">("any");
   const [results, setResults] = useState(initialResults);
   const [isPending, startTransition] = useTransition();
@@ -49,13 +55,13 @@ export function CirclesReferralClient({
   }
 
   function copyReferralNote(row: PeerAvailabilityRow) {
-    const note = `Hi! I have a client looking for ${checkIn} to ${checkOut}. Your unit "${row.property_name}" looks available. Can we refer them? — EliteHost Circle`;
+    const note = `Hi! I have a client looking for ${checkIn} to ${checkOut}. Your unit "${row.property_name}" (${row.bedrooms} bed, KES ${row.base_rate_kes.toLocaleString()}/night) looks available. Can we refer them? — EliteHost Circle`;
     navigator.clipboard.writeText(note);
   }
 
   function whatsAppHost(row: PeerAvailabilityRow) {
     const text = encodeURIComponent(
-      `Hi ${row.host_name}! Client needs ${checkIn}–${checkOut}. Is ${row.property_name} still free?`
+      `Hi ${row.host_name}! Client needs ${checkIn}–${checkOut}. Is ${row.property_name} (KES ${row.base_rate_kes.toLocaleString()}/night) still free?`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   }
@@ -80,6 +86,7 @@ export function CirclesReferralClient({
             <Input
               id="check-in"
               type="date"
+              min={today}
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
             />
@@ -89,8 +96,8 @@ export function CirclesReferralClient({
             <Input
               id="check-out"
               type="date"
+              min={checkIn || today}
               value={checkOut}
-              min={checkIn}
               onChange={(e) => setCheckOut(e.target.value)}
             />
           </div>
@@ -137,7 +144,9 @@ export function CirclesReferralClient({
                   <div>
                     <p className="font-medium text-foreground">{row.property_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {row.is_own ? "Your unit" : `${row.host_name} · Circle peer`}
+                      {row.is_own
+                        ? "Your unit"
+                        : `${row.host_name} · KES ${row.base_rate_kes.toLocaleString()}/night${row.location ? ` · ${row.location}` : ""}`}
                     </p>
                   </div>
                   <Badge variant={row.is_own ? "outline" : "secondary"}>

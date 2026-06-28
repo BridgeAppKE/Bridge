@@ -1,6 +1,7 @@
 import { getExpenses } from "@/lib/actions/expenses-v2";
 import { getInventoryItems } from "@/lib/actions/inventory-v2";
-import { getCirclePeerHighlights } from "@/lib/actions/circles";
+import { searchPeerAvailability } from "@/lib/actions/circles";
+import { groupPeerAvailabilityForHome } from "@/lib/circles/peer-availability";
 import { getAllVisibleBookings, getBookingsWithRevenue } from "@/lib/actions/bookings";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { getHostProfile } from "@/lib/actions/onboarding";
@@ -17,11 +18,17 @@ import {
 export default async function HomePage() {
   const user = await getCurrentUser();
   const profile = await getHostProfile();
+  const now = new Date();
 
-  const [inventoryRules, circlePeers, bookings, allBookings, hasIcal, activeTask, expenses] =
+  const checkIn = now.toISOString().slice(0, 10);
+  const weekOut = new Date(now);
+  weekOut.setDate(weekOut.getDate() + 7);
+  const checkOut = weekOut.toISOString().slice(0, 10);
+
+  const [inventoryRules, peerSearch, bookings, allBookings, hasIcal, activeTask, expenses] =
     await Promise.all([
       getInventoryItems(),
-      getCirclePeerHighlights(),
+      searchPeerAvailability(checkIn, checkOut),
       getBookingsWithRevenue(),
       getAllVisibleBookings(),
       userHasAnyIcalFeed(),
@@ -35,7 +42,6 @@ export default async function HomePage() {
     user?.email?.split("@")[0] ??
     "Host";
 
-  const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
   const yearStart = new Date(now.getFullYear(), 0, 1);
@@ -48,7 +54,7 @@ export default async function HomePage() {
     .filter((e) => new Date(e.date) >= monthStart)
     .reduce((sum, e) => sum + Number(e.amount_kes), 0);
 
-  const circleDisplay = circlePeers.slice(0, 4);
+  const circleDisplay = groupPeerAvailabilityForHome(peerSearch);
 
   const inventoryAlerts = inventoryRules
     .filter((rule) => rule.quantity <= rule.alert_threshold)

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createDataClient } from "@/lib/supabase/server";
+import { computeStayConsumption } from "@/lib/inventory/consumption";
 import type { InventoryRule } from "@/lib/types/database";
 
 export async function createInventoryRule(formData: FormData) {
@@ -56,6 +57,7 @@ export async function getInventoryRules(
 export async function simulateCheckout(formData: FormData) {
   const propertyId = formData.get("property_id") as string;
   const guestCount = parseInt(formData.get("guest_count") as string, 10);
+  const nights = parseInt(formData.get("nights") as string, 10) || 1;
 
   if (!propertyId || isNaN(guestCount) || guestCount < 1) {
     return { error: "Select a property and enter at least 1 guest." };
@@ -75,7 +77,7 @@ export async function simulateCheckout(formData: FormData) {
   const updates: { item: string; deducted: number; newStock: number; low: boolean }[] = [];
 
   for (const rule of rules) {
-    const deduction = rule.usage_per_guest * guestCount;
+    const deduction = computeStayConsumption(rule.usage_per_guest, guestCount, nights);
     const newStock = Math.max(0, rule.current_stock - deduction);
     const low = newStock <= rule.alert_threshold;
 
@@ -95,10 +97,16 @@ export async function simulateCheckout(formData: FormData) {
   }
 
   revalidatePath("/inventory");
-  return { success: true, updates, guestCount };
+  revalidatePath("/home");
+  revalidatePath("/unit");
+  return { success: true, updates, guestCount, nights };
 }
 
-export async function deductInventoryForGuests(propertyId: string, guestCount: number) {
+export async function deductInventoryForGuests(
+  propertyId: string,
+  guestCount: number,
+  nights = 1
+) {
   const supabase = await createDataClient();
   const { data: rules, error } = await supabase
     .from("inventory_rules")
@@ -109,7 +117,7 @@ export async function deductInventoryForGuests(propertyId: string, guestCount: n
   if (!rules?.length) return { success: true };
 
   for (const rule of rules) {
-    const deduction = rule.usage_per_guest * guestCount;
+    const deduction = computeStayConsumption(rule.usage_per_guest, guestCount, nights);
     const newStock = Math.max(0, rule.current_stock - deduction);
     await supabase
       .from("inventory_rules")

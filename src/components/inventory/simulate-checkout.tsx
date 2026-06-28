@@ -23,6 +23,7 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
   const [propertyId, setPropertyId] = useState(properties[0]?.id ?? "");
   const [result, setResult] = useState<{
     guestCount: number;
+    nights: number;
     updates: { item: string; deducted: number; newStock: number; low: boolean }[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
       } else if (response.success && response.updates) {
         setResult({
           guestCount: response.guestCount!,
+          nights: response.nights ?? 1,
           updates: response.updates,
         });
       }
@@ -51,7 +53,7 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
     <div>
       <SectionHeader
         title="Simulate Checkout"
-        description="Mock a guest checkout to deduct inventory based on your rules."
+        description="Mock checkout: deducts usage_per_guest × guests × nights from stock."
       />
       <form action={handleSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -80,6 +82,17 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
             required
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="nights">Nights stayed</Label>
+          <Input
+            id="nights"
+            name="nights"
+            type="number"
+            min="1"
+            defaultValue="3"
+            required
+          />
+        </div>
         <Button
           type="submit"
           variant="outline"
@@ -95,7 +108,7 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
       {result && (
         <div className={listRowClass + " mt-4 space-y-2"}>
           <p className="text-sm font-medium text-foreground">
-            Deducted for {result.guestCount} guest(s):
+            Deducted for {result.guestCount} guest(s) × {result.nights} night(s):
           </p>
           <ul className="space-y-1 text-sm">
             {result.updates.map((u) => (

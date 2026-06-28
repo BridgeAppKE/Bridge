@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { blockDates } from "@/lib/actions/bookings";
+import { todayIsoDate } from "@/lib/inventory/consumption";
 import type { Property } from "@/lib/types/database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,8 @@ export function BlockDatesDialog({
     if (next) resetForm();
     setOpen(next);
   }
+
+  const today = todayIsoDate();
 
   function handleSubmit(formData: FormData) {
     if (!propertyId) {
@@ -120,11 +123,23 @@ export function BlockDatesDialog({
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="block-start">From</Label>
-                <Input id="block-start" name="start_date" type="date" required />
+                <Input
+                  id="block-start"
+                  name="start_date"
+                  type="date"
+                  min={today}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="block-end">To</Label>
-                <Input id="block-end" name="end_date" type="date" required />
+                <Input
+                  id="block-end"
+                  name="end_date"
+                  type="date"
+                  min={today}
+                  required
+                />
               </div>
             </div>
             <Button type="submit" disabled={isPending || !propertyId} className="w-full">

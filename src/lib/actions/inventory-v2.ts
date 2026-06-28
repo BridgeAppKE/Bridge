@@ -197,3 +197,44 @@ export async function getLowStockAlerts() {
       category: item.category,
     }));
 }
+
+export async function deductInventoryForStay(
+  propertyId: string,
+  guestCount: number,
+  nights: number
+) {
+  const { computeStayConsumption } = await import("@/lib/inventory/consumption");
+  const supabase = await createDataClient();
+  const table = await inventoryTable(supabase);
+  const qtyField = table === TABLE ? "quantity" : "current_stock";
+  const nameField = table === TABLE ? "name" : "item_name";
+
+  const { data: items, error } = await supabase
+    .from(table)
+    .select(`id, ${qtyField}, usage_per_guest, ${nameField}`)
+    .eq("property_id", propertyId);
+
+  if (error) return { error: error.message };
+  if (!items?.length) return { success: true, updates: [] };
+
+  const updates: { item: string; deducted: number; newStock: number }[] = [];
+
+  for (const item of items) {
+    const usage = Number((item as Record<string, unknown>).usage_per_guest ?? 1);
+    const deduction = computeStayConsumption(usage, guestCount, nights);
+    const current = Number((item as Record<string, unknown>)[qtyField] ?? 0);
+    const next = Math.max(0, current - deduction);
+
+    await supabase.from(table).update({ [qtyField]: next }).eq("id", item.id);
+
+    updates.push({
+      item: String((item as Record<string, unknown>)[nameField]),
+      deducted: deduction,
+      newStock: next,
+    });
+  }
+
+  revalidatePath("/unit");
+  revalidatePath("/home");
+  return { success: true, updates, guestCount, nights };
+}

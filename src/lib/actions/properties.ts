@@ -125,6 +125,39 @@ export async function updatePropertyDetails(
   return { success: true };
 }
 
+export async function deleteProperty(propertyId: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const supabase = await createDataClient();
+  const { data: property } = await supabase
+    .from("properties")
+    .select("id, name")
+    .eq("id", propertyId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  if (!property) return { error: "Unit not found." };
+
+  const { count } = await supabase
+    .from("properties")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", user.id);
+
+  if ((count ?? 0) <= 1) {
+    return { error: "Keep at least one unit. Add another before deleting this one." };
+  }
+
+  const { error } = await supabase.from("properties").delete().eq("id", propertyId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/calendar");
+  revalidatePath("/home");
+  revalidatePath("/unit");
+  revalidatePath("/circles");
+  return { success: true };
+}
+
 /** @deprecated use updatePropertyDetails */
 export async function updatePropertyName(propertyId: string, name: string) {
   const property = await getPropertyForOwner(propertyId);

@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 import { getUserIdByEmail } from "@/lib/supabase/admin";
 import type { AvailabilityProperty } from "@/lib/types/database";
+import type { PeerAvailabilityRow } from "@/lib/circles/peer-availability";
+
+export type { PeerAvailabilityRow } from "@/lib/circles/peer-availability";
 
 export type CircleInvitationRow = {
   id: string;
@@ -272,15 +275,6 @@ export async function getCircleMembers() {
   return invitations.filter((i) => i.status === "accepted" || i.status === "pending");
 }
 
-export type PeerAvailabilityRow = {
-  property_id: string;
-  property_name: string;
-  host_name: string;
-  bedrooms: number;
-  is_own: boolean;
-  is_available: boolean;
-};
-
 function datesOverlap(
   startA: string,
   endA: string,
@@ -320,7 +314,7 @@ export async function searchPeerAvailability(
 
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, name, owner_id, bedrooms")
+    .select("id, name, owner_id, bedrooms, location, base_rate_kes")
     .in("owner_id", Array.from(visibleOwnerIds))
     .order("name");
 
@@ -354,7 +348,10 @@ export async function searchPeerAvailability(
     return {
       property_id: property.id,
       property_name: property.name,
+      host_id: property.owner_id,
       host_name: profileMap.get(property.owner_id) ?? "Host",
+      location: (property as { location?: string | null }).location ?? null,
+      base_rate_kes: Number((property as { base_rate_kes?: number }).base_rate_kes ?? 8500),
       bedrooms: (property as { bedrooms?: number }).bedrooms ?? 1,
       is_own: property.owner_id === user.id,
       is_available: !hasConflict,
@@ -462,76 +459,6 @@ export async function getAvailabilityList(circleId?: string): Promise<Availabili
       owner_name: profileMap.get(property.owner_id) ?? null,
       is_own: isOwn,
       mock_availability: availabilityLabels,
-    };
-  });
-}
-
-export async function getCirclePeerHighlights(): Promise<
-  { id: string; name: string; status: string; unitsAvailable: number }[]
-> {
-  const user = await getSessionUser();
-  if (!user) return [];
-
-  const supabase = await createDataClient();
-  const { data: memberships } = await supabase
-    .from("circle_members")
-    .select("circle_id")
-    .eq("profile_id", user.id);
-
-  const circleIds = memberships?.map((m) => m.circle_id) ?? [];
-  if (!circleIds.length) return [];
-
-  const { data: members } = await supabase
-    .from("circle_members")
-    .select("profile_id")
-    .in("circle_id", circleIds);
-
-  const peerIds = Array.from(
-    new Set((members ?? []).map((m) => m.profile_id).filter((id) => id !== user.id))
-  );
-  if (!peerIds.length) return [];
-
-  const [{ data: profiles }, { data: properties }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, legal_name").in("id", peerIds),
-    supabase.from("properties").select("id, owner_id, location").in("owner_id", peerIds),
-  ]);
-
-  const propertyIds = properties?.map((p) => p.id) ?? [];
-  const { data: bookings } = propertyIds.length
-    ? await supabase
-        .from("bookings")
-        .select("property_id, start_date, end_date")
-        .in("property_id", propertyIds)
-    : { data: [] as { property_id: string; start_date: string; end_date: string }[] };
-
-  const today = new Date().toISOString().slice(0, 10);
-  const weekOut = new Date();
-  weekOut.setDate(weekOut.getDate() + 7);
-  const checkOut = weekOut.toISOString().slice(0, 10);
-
-  return peerIds.map((peerId) => {
-    const profile = profiles?.find((p) => p.id === peerId);
-    const peerProps = properties?.filter((p) => p.owner_id === peerId) ?? [];
-    const openUnits = peerProps.filter((prop) => {
-      const conflicts = (bookings ?? []).filter((b) => b.property_id === prop.id);
-      return !conflicts.some((b) =>
-        datesOverlap(today, checkOut, b.start_date, b.end_date)
-      );
-    }).length;
-
-    const locationList = peerProps
-      .map((p) => (p as { location?: string }).location)
-      .filter((loc): loc is string => Boolean(loc));
-    const locations = Array.from(new Set(locationList));
-
-    return {
-      id: peerId,
-      name: profile?.legal_name ?? profile?.full_name ?? "Circle Host",
-      unitsAvailable: openUnits,
-      status:
-        locations.length > 0
-          ? locations.slice(0, 2).join(" · ")
-          : `${peerProps.length} unit${peerProps.length === 1 ? "" : "s"}`,
     };
   });
 }

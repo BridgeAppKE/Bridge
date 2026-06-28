@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil } from "lucide-react";
-import { updatePropertyDetails } from "@/lib/actions/properties";
+import { Pencil, Trash2 } from "lucide-react";
+import { updatePropertyDetails, deleteProperty } from "@/lib/actions/properties";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +51,22 @@ export function EditUnitDialog({
       else {
         toast.success("Unit updated");
         setOpen(false);
+        router.refresh();
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!confirm(`Delete "${currentName}"? Bookings and inventory for this unit will be removed.`)) {
+      return;
+    }
+    startTransition(async () => {
+      const result = await deleteProperty(propertyId);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success("Unit deleted");
+        setOpen(false);
+        router.push("/unit");
         router.refresh();
       }
     });
@@ -109,6 +125,16 @@ export function EditUnitDialog({
               onClick={handleSave}
             >
               {isPending ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full text-destructive hover:text-destructive"
+              disabled={isPending}
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete unit
             </Button>
           </div>
         </DialogContent>

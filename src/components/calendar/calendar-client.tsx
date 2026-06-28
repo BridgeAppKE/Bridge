@@ -13,6 +13,7 @@ import { FinalizeBookingButton } from "@/components/bookings/finalize-booking-bu
 import { PlatformIcalSync } from "@/components/ical/platform-ical-sync";
 import { IcalExportPanel } from "@/components/ical/ical-export-panel";
 import { Badge } from "@/components/ui/badge";
+import { ClearBlockButton } from "@/components/bookings/clear-block-button";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
@@ -126,6 +127,7 @@ export function CalendarClient({
                         <Badge variant={b.is_manual_block ? "secondary" : "default"}>
                           {b.is_manual_block ? "Blocked" : "Booking"}
                         </Badge>
+                        {b.is_manual_block && <ClearBlockButton bookingId={b.id} />}
                       </li>
                     ))}
                   </ul>
@@ -178,7 +180,9 @@ export function CalendarClient({
                       })}
                     </span>
                     <div className="flex flex-wrap items-center gap-2">
-                      {!b.is_manual_block && (
+                      {b.is_manual_block ? (
+                        <ClearBlockButton bookingId={b.id} />
+                      ) : (
                         <>
                           <FinalizeBookingButton
                             bookingId={b.id}

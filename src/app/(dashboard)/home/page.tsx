@@ -1,6 +1,6 @@
 import { getExpenses } from "@/lib/actions/expenses-v2";
 import { getInventoryItems } from "@/lib/actions/inventory-v2";
-import { getCircleInvitations } from "@/lib/actions/circles";
+import { getCirclePeerHighlights } from "@/lib/actions/circles";
 import { getAllVisibleBookings, getBookingsWithRevenue } from "@/lib/actions/bookings";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { getHostProfile } from "@/lib/actions/onboarding";
@@ -18,10 +18,10 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const profile = await getHostProfile();
 
-  const [inventoryRules, circleMembers, bookings, allBookings, hasIcal, activeTask, expenses] =
+  const [inventoryRules, circlePeers, bookings, allBookings, hasIcal, activeTask, expenses] =
     await Promise.all([
       getInventoryItems(),
-      getCircleInvitations(),
+      getCirclePeerHighlights(),
       getBookingsWithRevenue(),
       getAllVisibleBookings(),
       userHasAnyIcalFeed(),
@@ -48,16 +48,10 @@ export default async function HomePage() {
     .filter((e) => new Date(e.date) >= monthStart)
     .reduce((sum, e) => sum + Number(e.amount_kes), 0);
 
-  const acceptedMembers = circleMembers.filter((m) => m.status === "accepted");
-
-  const circleDisplay = acceptedMembers.slice(0, 3).map((member, index) => ({
-    id: member.id,
-    name: member.peer.full_name ?? "Circle Host",
-    status: `${2 + index} Units Available`,
-    unitsAvailable: 2 + index,
-  }));
+  const circleDisplay = circlePeers.slice(0, 4);
 
   const inventoryAlerts = inventoryRules
+    .filter((rule) => rule.quantity <= rule.alert_threshold)
     .map((rule) => {
       const maxStock = Math.max(rule.quantity, rule.alert_threshold, 1);
       const percent = Math.round((rule.quantity / maxStock) * 100);

@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/admin";
-import { DEMO_EXPENSE_VENDORS, DEMO_TASK_TITLES } from "@/lib/demo/seed-catalog";
+import { DEMO_EXPENSE_VENDORS } from "@/lib/demo/seed-catalog";
 
 function hourSeed() {
   const now = new Date();
@@ -16,86 +16,76 @@ function seededRandom(seed: string, salt: number) {
   return Math.abs(hash);
 }
 
-function addDays(base: Date, days: number) {
-  const d = new Date(base);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
+/** Subtle hourly nudge — small expense or stock tweak only (no duplicate booking spam). */
 export async function simulateDevHourly() {
   const admin = createServiceClient();
-  const { data: state } = await admin.from("demo_seed_state").select("batch_id").maybeSingle();
-  const batchId = state?.batch_id;
-  if (!batchId) return { ok: true, actions: [] as string[] };
+  const { data: stateRow } = await admin
+    .from("demo_seed_state")
+    .select("batch_id, host_profile_id")
+    .maybeSingle();
+  const batchId = stateRow?.batch_id;
+  if (!batchId || !stateRow?.host_profile_id) {
+    return { ok: true, actions: [] as string[] };
+  }
 
   const seed = hourSeed();
   const actions: string[] = [];
 
-  const { data: properties } = await admin
+  const { data: hostProperties } = await admin
     .from("properties")
-    .select("id, owner_id")
+    .select("id")
     .eq("demo_seed_batch_id", batchId)
-    .limit(20);
+    .eq("owner_id", stateRow.host_profile_id)
+    .limit(4);
 
-  if (!properties?.length) return { ok: true, actions: ["no demo properties"] };
+  if (!hostProperties?.length) return { ok: true, actions: ["no demo properties"] };
 
-  const property = properties[seededRandom(seed, 1) % properties.length];
+  const property = hostProperties[seededRandom(seed, 1) % hostProperties.length];
+  const roll = seededRandom(seed, 2) % 3;
 
-  const roll = seededRandom(seed, 2) % 4;
   if (roll === 0) {
+    const amount = 450 + (seededRandom(seed, 3) % 1200);
     await admin.from("expenses").insert({
       property_id: property.id,
-      amount_kes: 350 + (seededRandom(seed, 3) % 900),
-      category: "Supplies",
+      amount_kes: amount,
+      category: seededRandom(seed, 4) % 2 === 0 ? "Supplies" : "Cleaning",
       date: new Date().toISOString().slice(0, 10),
-      vendor_name: DEMO_EXPENSE_VENDORS[seededRandom(seed, 4) % DEMO_EXPENSE_VENDORS.length],
+      vendor_name: DEMO_EXPENSE_VENDORS[seededRandom(seed, 5) % DEMO_EXPENSE_VENDORS.length],
       demo_seed_batch_id: batchId,
     });
-    actions.push("added expense");
+    actions.push(`logged KES ${amount} expense`);
   } else if (roll === 1) {
-    await admin.from("bookings").insert({
-      property_id: property.id,
-      start_date: addDays(new Date(), 14),
-      end_date: addDays(new Date(), 17),
-      guest_count: 2,
-      is_manual_block: seededRandom(seed, 5) % 3 === 0,
-      external_uid: `demo:${batchId}:sim:${seed}`,
-      demo_seed_batch_id: batchId,
-    });
-    actions.push("added booking/block");
-  } else if (roll === 2) {
-    const tableProbe = await admin.from("inventory").select("id, quantity").limit(1);
+    const tableProbe = await admin.from("inventory").select("id").limit(1);
     const table = tableProbe.error?.code === "42P01" ? "inventory_rules" : "inventory";
+    const qtyField = table === "inventory" ? "quantity" : "current_stock";
+
     const { data: items } = await admin
       .from(table)
-      .select(table === "inventory" ? "id, quantity" : "id, current_stock")
-      .eq("property_id", property.id)
-      .limit(5);
+      .select(`id, ${qtyField}, alert_threshold`)
+      .eq("property_id", property.id);
 
-    const item = items?.[seededRandom(seed, 6) % (items?.length || 1)];
-    if (item) {
-      const qtyField = table === "inventory" ? "quantity" : "current_stock";
-      const current = Number((item as Record<string, unknown>)[qtyField] ?? 0);
+    const lowItems = (items ?? []).filter(
+      (item) =>
+        Number((item as Record<string, unknown>)[qtyField] ?? 0) <=
+        Number((item as Record<string, unknown>).alert_threshold ?? 0)
+    );
+
+    const target = lowItems[seededRandom(seed, 6) % (lowItems.length || 1)] ?? items?.[0];
+    if (target) {
+      const current = Number((target as Record<string, unknown>)[qtyField] ?? 0);
       await admin
         .from(table)
-        .update({ [qtyField]: Math.max(0, current - 1) })
-        .eq("id", item.id);
-      actions.push("decremented stock");
+        .update({ [qtyField]: current + 2 })
+        .eq("id", target.id);
+      actions.push("restocked low item (+2)");
     }
   } else {
-    await admin.from("operational_tasks").insert({
-      property_id: property.id,
-      title: DEMO_TASK_TITLES[seededRandom(seed, 7) % DEMO_TASK_TITLES.length],
-      status: "pending",
-      demo_seed_batch_id: batchId,
-    });
-    actions.push("created ops task");
+    await admin
+      .from("properties")
+      .update({ last_synced_at: new Date().toISOString() })
+      .eq("id", property.id);
+    actions.push("refreshed last synced");
   }
-
-  await admin
-    .from("properties")
-    .update({ last_synced_at: new Date().toISOString() })
-    .eq("id", property.id);
 
   return { ok: true, actions, batchId };
 }

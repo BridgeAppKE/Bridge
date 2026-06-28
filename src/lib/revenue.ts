@@ -11,6 +11,15 @@ type BookingLike = {
     | null;
 };
 
+function parseDay(iso: string): Date {
+  const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
 function nightlyRate(booking: BookingLike): number {
   const props = Array.isArray(booking.properties)
     ? booking.properties[0]
@@ -23,47 +32,57 @@ export function bookingRevenue(booking: BookingLike): number {
   const nights = Math.max(
     1,
     Math.ceil(
-      (new Date(booking.end_date).getTime() - new Date(booking.start_date).getTime()) /
+      (parseDay(booking.end_date).getTime() - parseDay(booking.start_date).getTime()) /
         (1000 * 60 * 60 * 24)
     )
   );
   return nights * nightlyRate(booking);
 }
 
+/** Revenue recognized when checkout falls within [start, end] (inclusive). */
 export function sumRevenueInRange(
   bookings: BookingLike[],
   start: Date,
   end: Date
 ): number {
+  const rangeStart = startOfDay(start);
+  const rangeEnd = startOfDay(end);
+
   return bookings
     .filter((b) => {
-      const d = new Date(b.start_date);
-      return d >= start && d <= end && !b.is_manual_block;
+      if (b.is_manual_block) return false;
+      const checkout = parseDay(b.end_date);
+      return checkout >= rangeStart && checkout <= rangeEnd;
     })
     .reduce((sum, b) => sum + bookingRevenue(b), 0);
 }
 
 export function buildRevenueTrendFromBookings(bookings: BookingLike[]) {
   const now = new Date();
+  const today = startOfDay(now);
+
   return Array.from({ length: 6 }, (_, i) => {
-    const weekStart = new Date(now);
+    const weekStart = new Date(today);
     weekStart.setDate(weekStart.getDate() - (5 - i) * 7);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
+    const capEnd = weekEnd > today ? today : weekEnd;
+
     return {
       label: weekStart.toLocaleDateString("en-KE", { month: "short", day: "numeric" }),
-      value: sumRevenueInRange(bookings, weekStart, weekEnd),
+      value: sumRevenueInRange(bookings, weekStart, capEnd),
     };
   });
 }
 
 export function revenueChangePercent(bookings: BookingLike[]): number {
   const now = new Date();
+  const today = startOfDay(now);
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-  const thisMonth = sumRevenueInRange(bookings, thisMonthStart, now);
+  const thisMonth = sumRevenueInRange(bookings, thisMonthStart, today);
   const lastMonth = sumRevenueInRange(bookings, lastMonthStart, lastMonthEnd);
 
   if (lastMonth === 0) return thisMonth > 0 ? 100 : 0;

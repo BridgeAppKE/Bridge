@@ -6,7 +6,9 @@ import {
   createSplitExpenses,
   parseMpesaStatement,
   uploadReceipt,
+  EXPENSE_CATEGORIES,
 } from "@/lib/actions/expenses-v2";
+import type { MpesaParseResult } from "@/lib/parsers/expense-parsers";
 import { consumeReceiptOcrCredit } from "@/lib/actions/receipt-ocr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,8 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
     Object.fromEntries(units.map((u) => [u.id, ""]))
   );
   const [remaining, setRemaining] = useState(ocrRemaining);
+  const [mpesaPreview, setMpesaPreview] = useState<MpesaParseResult | null>(null);
+  const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const allocatedSum = useMemo(
@@ -55,6 +59,7 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
   const splitOk = totalNum > 0 && Math.abs(allocatedSum - totalNum) < 0.01;
 
   async function processFile(file: File) {
+    setOcrNote(null);
     const formData = new FormData();
     formData.set("file", file);
     const upload = await uploadReceipt(formData);
@@ -64,6 +69,11 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
     }
     setReceiptPath(upload.path ?? null);
 
+    if (!upload.ocrAvailable) {
+      setOcrNote("OCR unavailable — enter amount manually");
+      return;
+    }
+
     if (remaining > 0) {
       const credit = await consumeReceiptOcrCredit();
       if (credit.ok) {
@@ -71,6 +81,8 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
         if (upload.parsed?.amount) setTotal(String(upload.parsed.amount));
         if (upload.parsed?.vendor_name) setVendor(upload.parsed.vendor_name);
       }
+    } else {
+      setOcrNote("Upgrade for more scans — enter amount manually");
     }
   }
 
@@ -78,8 +90,13 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
     if (!text.trim()) return;
     startTransition(async () => {
       const parsed = await parseMpesaStatement(text);
+      if (!parsed.amount && !parsed.reference) {
+        setMpesaPreview(null);
+        return;
+      }
       if (parsed.amount) setTotal(String(parsed.amount));
       if (parsed.vendorHint) setVendor(parsed.vendorHint);
+      setMpesaPreview(parsed);
     });
   }
 
@@ -195,8 +212,19 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
         <Textarea
           placeholder="Paste M-Pesa confirmation SMS…"
           rows={2}
-          onBlur={(e) => handleMpesaPaste(e.target.value)}
+          onPaste={(e) => handleMpesaPaste(e.clipboardData.getData("text"))}
+          onChange={(e) => {
+            if (!e.target.value.trim()) setMpesaPreview(null);
+          }}
         />
+        {mpesaPreview && (
+          <p className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs text-foreground">
+            Parsed: {mpesaPreview.amount ? `KES ${mpesaPreview.amount.toLocaleString()}` : "—"}
+            {mpesaPreview.vendorHint ? ` · ${mpesaPreview.vendorHint}` : ""}
+            {mpesaPreview.reference ? ` · Ref ${mpesaPreview.reference}` : ""}
+          </p>
+        )}
+        {ocrNote && <p className="text-xs text-muted-foreground">{ocrNote}</p>}
       </div>
 
       <div className="space-y-4 rounded-xl border border-border p-4">
@@ -219,13 +247,11 @@ export function PortfolioCapture({ units, ocrRemaining, ocrLimit }: PortfolioCap
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["Supplies", "Cleaning", "Utilities", "Maintenance", "Staff", "Other"].map(
-                  (c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  )
-                )}
+                {EXPENSE_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

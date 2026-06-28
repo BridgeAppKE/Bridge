@@ -5,7 +5,9 @@ import Link from "next/link";
 import {
   createExpense,
   parseMpesaStatement,
+  EXPENSE_CATEGORIES,
 } from "@/lib/actions/expenses-v2";
+import type { MpesaParseResult } from "@/lib/parsers/expense-parsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,14 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const CATEGORIES = [
-  "Supplies",
-  "Cleaning",
-  "Utilities",
-  "Maintenance",
-  "Staff",
-  "Other",
-] as const;
+const CATEGORIES = EXPENSE_CATEGORIES;
 
 interface ManualExpenseFormProps {
   propertyId: string;
@@ -39,15 +34,21 @@ export function ManualExpenseForm({ propertyId, captureHref }: ManualExpenseForm
   const [mpesaRef, setMpesaRef] = useState("");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Supplies");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [mpesaPreview, setMpesaPreview] = useState<MpesaParseResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleMpesaPaste(text: string) {
     if (!text.trim()) return;
     startTransition(async () => {
       const parsed = await parseMpesaStatement(text);
+      if (!parsed.amount && !parsed.reference) {
+        setMpesaPreview(null);
+        return;
+      }
       if (parsed.amount) setAmount(String(parsed.amount));
-      if (parsed.reference) setMpesaRef(parsed.reference);
       if (parsed.vendorHint) setVendor(parsed.vendorHint);
+      if (parsed.reference) setMpesaRef(parsed.reference);
+      setMpesaPreview(parsed);
     });
   }
 
@@ -74,6 +75,7 @@ export function ManualExpenseForm({ propertyId, captureHref }: ManualExpenseForm
         setAmount("");
         setVendor("");
         setMpesaRef("");
+        setMpesaPreview(null);
       }
     });
   }
@@ -103,8 +105,18 @@ export function ManualExpenseForm({ propertyId, captureHref }: ManualExpenseForm
           placeholder="Paste M-Pesa confirmation SMS…"
           rows={2}
           className="text-sm"
-          onBlur={(e) => handleMpesaPaste(e.target.value)}
+          onPaste={(e) => handleMpesaPaste(e.clipboardData.getData("text"))}
+          onChange={(e) => {
+            if (!e.target.value.trim()) setMpesaPreview(null);
+          }}
         />
+        {mpesaPreview && (
+          <p className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs text-foreground">
+            Parsed: {mpesaPreview.amount ? `KES ${mpesaPreview.amount.toLocaleString()}` : "—"}
+            {mpesaPreview.vendorHint ? ` · ${mpesaPreview.vendorHint}` : ""}
+            {mpesaPreview.reference ? ` · Ref ${mpesaPreview.reference}` : ""}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

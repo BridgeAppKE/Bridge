@@ -2,15 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { createDataClient, getSessionUser } from "@/lib/supabase/server";
-import { parseMpesaText, parseReceiptStub } from "@/lib/parsers/expense-parsers";
+import {
+  parseMpesaText,
+  parseReceiptStub,
+  parseReceiptWithClaude,
+} from "@/lib/parsers/expense-parsers";
 import type { Expense } from "@/lib/types/database";
 
-const EXPENSE_CATEGORIES = [
-  "Cleaning",
-  "Utilities",
-  "Maintenance",
+export const EXPENSE_CATEGORIES = [
   "Supplies",
-  "Staff",
+  "Maintenance",
+  "Utilities",
+  "Cleaning",
+  "Marketing",
+  "Platform Fees",
   "Other",
 ] as const;
 
@@ -179,7 +184,12 @@ export async function uploadReceipt(formData: FormData) {
 
   if (error) return { error: error.message };
 
-  const parsed = parseReceiptStub(file.name);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const ocrParsed = await parseReceiptWithClaude(
+    buffer.toString("base64"),
+    file.type || "image/jpeg"
+  );
+  const parsed = ocrParsed ?? parseReceiptStub(file.name);
 
-  return { success: true, url: path, path, parsed };
+  return { success: true, url: path, path, parsed, ocrAvailable: ocrParsed !== null };
 }

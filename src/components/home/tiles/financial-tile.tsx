@@ -106,7 +106,14 @@ export function FinancialTile({
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs font-medium text-foreground">
+            <div
+              className={cn(
+                "flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium",
+                changePercent >= 0
+                  ? "border-success/30 bg-success/10 text-success"
+                  : "border-destructive/30 bg-destructive/10 text-destructive"
+              )}
+            >
               <TrendingUp className="h-3 w-3" />
               {changePercent >= 0 ? "+" : ""}
               {changePercent}%
@@ -120,7 +127,7 @@ export function FinancialTile({
           <p
             className={cn(
               "text-xs font-medium",
-              changePercent >= 0 ? "text-foreground" : "text-destructive"
+              changePercent >= 0 ? "text-success" : "text-destructive"
             )}
           >
             {changePercent >= 0 ? "↑" : "↓"} {Math.abs(changePercent).toFixed(0)}% vs prior

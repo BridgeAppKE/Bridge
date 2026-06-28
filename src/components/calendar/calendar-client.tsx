@@ -143,7 +143,7 @@ export function CalendarClient({
                             day: "numeric",
                           })}
                         </span>
-                        <Badge variant={b.is_manual_block ? "secondary" : "default"}>
+                        <Badge variant={b.is_manual_block ? "warning" : "success"}>
                           {b.is_manual_block ? "Blocked" : "Booking"}
                         </Badge>
                         {b.is_manual_block && <ClearBlockButton bookingId={b.id} />}
@@ -232,7 +232,7 @@ export function CalendarClient({
                           />
                         </>
                       )}
-                      <Badge variant={b.is_manual_block ? "secondary" : "default"}>
+                      <Badge variant={b.is_manual_block ? "warning" : "success"}>
                         {b.is_manual_block ? "Blocked" : "Booking"}
                       </Badge>
                     </div>

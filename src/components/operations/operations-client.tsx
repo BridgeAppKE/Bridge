@@ -158,7 +158,13 @@ export function OperationsClient({
                       </Button>
                     )}
                   <Badge
-                    variant={task.status === "completed" ? "default" : "secondary"}
+                    variant={
+                      task.status === "completed"
+                        ? "success"
+                        : task.status === "in_progress"
+                          ? "info"
+                          : "warning"
+                    }
                     className="cursor-pointer tap-scale"
                     onClick={() => cycleStatus(task.id)}
                   >

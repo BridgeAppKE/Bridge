@@ -117,7 +117,7 @@ export function InventoryTabs({ properties, items }: InventoryTabsProps) {
                 key={item.id}
                 className={cn(
                   "flex flex-col gap-2 rounded-xl border border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
-                  low && "border-amber-500/40 bg-amber-500/5"
+                  low && "border-warning/40 bg-warning/5"
                 )}
               >
                 <div>
@@ -127,7 +127,7 @@ export function InventoryTabs({ properties, items }: InventoryTabsProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {low && <Badge variant="secondary">Low stock</Badge>}
+                  {low && <Badge variant="warning">Low stock</Badge>}
                   {tab === "usable" && (
                     <>
                       {(["available", "laundry", "damaged"] as const).map((s) => (

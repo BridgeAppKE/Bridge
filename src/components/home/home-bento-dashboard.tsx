@@ -121,7 +121,7 @@ export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
                       })}
                     </p>
                   </div>
-                  <Badge variant={stay.isBlock ? "secondary" : "default"}>
+                  <Badge variant={stay.isBlock ? "warning" : "success"}>
                     {stay.isBlock ? "Blocked" : "Booking"}
                   </Badge>
                 </div>

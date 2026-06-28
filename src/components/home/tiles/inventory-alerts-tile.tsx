@@ -35,7 +35,7 @@ export function InventoryAlertsTile({ items, fullWidth }: InventoryAlertsTilePro
                     {item.name}
                   </span>
                   {critical && (
-                    <span className="flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                    <span className="flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-warning">
                       <AlertTriangle className="h-3 w-3" />
                       Low
                     </span>
@@ -45,7 +45,7 @@ export function InventoryAlertsTile({ items, fullWidth }: InventoryAlertsTilePro
                   <div
                     className={cn(
                       "h-full rounded-full transition-all duration-300",
-                      critical ? "bg-amber-500" : "bg-primary"
+                      critical ? "bg-warning" : "bg-success"
                     )}
                     style={{ width: `${Math.min(item.stockPercent, 100)}%` }}
                   />

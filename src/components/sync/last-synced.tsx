@@ -35,7 +35,7 @@ export function LastSynced({ syncedAt, className }: LastSyncedProps) {
     <p className={className ?? "text-xs text-muted-foreground"}>
       Last synced:{" "}
       <span className="font-medium text-foreground">{formatRelativeTime(syncedAt)}</span>
-      {stale && <span className="ml-1.5 font-medium text-amber-600">· Stale</span>}
+      {stale && <span className="ml-1.5 font-medium text-warning">· Stale</span>}
     </p>
   );
 }

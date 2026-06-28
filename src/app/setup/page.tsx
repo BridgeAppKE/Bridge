@@ -1,7 +1,8 @@
-import { isSupabaseConfigured, getSiteUrl } from "@/lib/env";
+import { isSupabaseConfigured, getRequestOrigin, getSiteUrl } from "@/lib/env";
 
-export default function SetupPage() {
+export default async function SetupPage() {
   const configured = isSupabaseConfigured();
+  const requestOrigin = await getRequestOrigin();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
@@ -26,7 +27,10 @@ export default function SetupPage() {
           </>
         )}
         <p className="text-xs text-muted-foreground">
-          Detected site URL: {getSiteUrl()}
+          Magic link redirect: {requestOrigin}/auth/callback
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Env fallback URL: {getSiteUrl()}
         </p>
       </div>
     </main>

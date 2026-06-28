@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getSiteUrl, isSupabaseConfigured } from "@/lib/env";
+import { getRequestOrigin, isSupabaseConfigured } from "@/lib/env";
 
 export async function signInWithMagicLink(formData: FormData) {
   const email = formData.get("email") as string;
@@ -16,10 +16,11 @@ export async function signInWithMagicLink(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const origin = await getRequestOrigin();
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${getSiteUrl()}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 

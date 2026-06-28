@@ -20,6 +20,7 @@ interface EditUnitDialogProps {
   propertyId: string;
   currentName: string;
   currentBaseRateKes: number;
+  currentCleanerPhone?: string | null;
   trigger?: "icon" | "text";
 }
 
@@ -27,17 +28,20 @@ export function EditUnitDialog({
   propertyId,
   currentName,
   currentBaseRateKes,
+  currentCleanerPhone,
   trigger = "icon",
 }: EditUnitDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(currentName);
   const [baseRate, setBaseRate] = useState(String(currentBaseRateKes || 8500));
+  const [cleanerPhone, setCleanerPhone] = useState(currentCleanerPhone ?? "");
   const [isPending, startTransition] = useTransition();
 
   function openDialog() {
     setName(currentName);
     setBaseRate(String(currentBaseRateKes || 8500));
+    setCleanerPhone(currentCleanerPhone ?? "");
     setOpen(true);
   }
 
@@ -46,6 +50,7 @@ export function EditUnitDialog({
       const result = await updatePropertyDetails(propertyId, {
         name,
         baseRateKes: parseFloat(baseRate),
+        cleanerPhone,
       });
       if (result.error) toast.error(result.error);
       else {
@@ -116,6 +121,16 @@ export function EditUnitDialog({
                 value={baseRate}
                 onChange={(e) => setBaseRate(e.target.value)}
                 placeholder="8500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="unit-cleaner-phone">Cleaner WhatsApp number (optional)</Label>
+              <Input
+                id="unit-cleaner-phone"
+                type="tel"
+                value={cleanerPhone}
+                onChange={(e) => setCleanerPhone(e.target.value)}
+                placeholder="07XX XXX XXX"
               />
             </div>
             <Button

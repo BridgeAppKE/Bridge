@@ -245,9 +245,29 @@ export async function finalizeBooking(bookingId: string, guestCount: number) {
   const { deductInventoryForStay } = await import("@/lib/actions/inventory-v2");
   await deductInventoryForStay(property.id, guestCount, nights);
 
+  const { data: nextBooking } = await supabase
+    .from("bookings")
+    .select("start_date")
+    .eq("property_id", property.id)
+    .eq("is_manual_block", false)
+    .gt("start_date", booking.end_date)
+    .order("start_date", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const { createCheckoutCleaningTask } = await import("@/lib/actions/operations");
+  await createCheckoutCleaningTask(
+    property.id,
+    bookingId,
+    booking.guest_name ?? null,
+    booking.end_date,
+    nextBooking?.start_date ?? null
+  );
+
   revalidatePath("/inventory");
   revalidatePath("/home");
   revalidatePath("/unit");
+  revalidatePath("/operations");
   return { success: true, nights, guestCount };
 }
 

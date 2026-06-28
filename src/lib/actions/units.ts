@@ -10,6 +10,7 @@ export type UnitCardSummary = {
   id: string;
   name: string;
   baseRateKes: number;
+  cleanerPhone: string | null;
   lowStockCount: number;
   spendMtd: number;
   pendingTasks: number;
@@ -22,7 +23,7 @@ export async function getUnitSummaries(): Promise<UnitCardSummary[]> {
   const supabase = await createDataClient();
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, name, base_rate_kes")
+    .select("id, name, base_rate_kes, cleaner_phone")
     .eq("owner_id", user.id)
     .order("name");
 
@@ -57,6 +58,7 @@ export async function getUnitSummaries(): Promise<UnitCardSummary[]> {
       id: property.id,
       name: property.name,
       baseRateKes: Number((property as { base_rate_kes?: number }).base_rate_kes ?? 8500),
+      cleanerPhone: (property as { cleaner_phone?: string | null }).cleaner_phone ?? null,
       lowStockCount,
       spendMtd,
       pendingTasks,

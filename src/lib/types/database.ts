@@ -41,6 +41,7 @@ export interface Database {
           ical_url: string | null;
           last_synced_at: string | null;
           visible_to_circle: boolean;
+          cleaner_phone: string | null;
           created_at: string;
         };
         Insert: {
@@ -51,6 +52,7 @@ export interface Database {
           ical_url?: string | null;
           last_synced_at?: string | null;
           visible_to_circle?: boolean;
+          cleaner_phone?: string | null;
           created_at?: string;
         };
         Update: {
@@ -61,6 +63,7 @@ export interface Database {
           ical_url?: string | null;
           last_synced_at?: string | null;
           visible_to_circle?: boolean;
+          cleaner_phone?: string | null;
           created_at?: string;
         };
       };
@@ -267,6 +270,7 @@ export interface Database {
           property_id: string;
           booking_id: string | null;
           title: string;
+          task_type: string;
           status: "pending" | "in_progress" | "completed" | "cancelled";
           assigned_to: string | null;
           due_at: string | null;
@@ -278,6 +282,7 @@ export interface Database {
           property_id: string;
           booking_id?: string | null;
           title: string;
+          task_type?: string;
           status?: "pending" | "in_progress" | "completed" | "cancelled";
           assigned_to?: string | null;
           due_at?: string | null;
@@ -289,6 +294,7 @@ export interface Database {
           property_id?: string;
           booking_id?: string | null;
           title?: string;
+          task_type?: string;
           status?: "pending" | "in_progress" | "completed" | "cancelled";
           assigned_to?: string | null;
           due_at?: string | null;

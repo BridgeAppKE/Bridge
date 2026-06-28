@@ -94,7 +94,7 @@ export async function createUnit(formData: FormData) {
 
 export async function updatePropertyDetails(
   propertyId: string,
-  details: { name: string; baseRateKes: number }
+  details: { name: string; baseRateKes: number; cleanerPhone?: string | null }
 ) {
   const trimmed = details.name.trim();
   if (!trimmed) return { error: "Unit name is required." };
@@ -112,6 +112,7 @@ export async function updatePropertyDetails(
     .update({
       name: trimmed,
       base_rate_kes: details.baseRateKes,
+      cleaner_phone: details.cleanerPhone?.trim() || null,
     })
     .eq("id", propertyId)
     .eq("owner_id", user.id);

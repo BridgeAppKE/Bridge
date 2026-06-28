@@ -56,6 +56,7 @@ export function UnitPortfolioList({ units }: UnitPortfolioListProps) {
                   propertyId={unit.id}
                   currentName={unit.name}
                   currentBaseRateKes={unit.baseRateKes}
+                  currentCleanerPhone={unit.cleanerPhone}
                   trigger="text"
                 />
                 <Link href={`/unit/${unit.id}`} className="p-1 text-muted-foreground">

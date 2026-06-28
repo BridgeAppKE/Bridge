@@ -20,10 +20,17 @@ import { Badge } from "@/components/ui/badge";
 interface OperationsClientProps {
   properties: Property[];
   tasks: TaskWithProperty[];
+  defaultPropertyId?: string;
 }
 
-export function OperationsClient({ properties, tasks }: OperationsClientProps) {
-  const [propertyId, setPropertyId] = useState(properties[0]?.id ?? "");
+export function OperationsClient({
+  properties,
+  tasks,
+  defaultPropertyId,
+}: OperationsClientProps) {
+  const [propertyId, setPropertyId] = useState(
+    defaultPropertyId ?? properties[0]?.id ?? ""
+  );
   const [isPending, startTransition] = useTransition();
 
   function handleCreate(formData: FormData) {

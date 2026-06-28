@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import {
   fileInvoiceToEtims,
+  getInvoiceShareUrl,
   setEtimsOptIn,
 } from "@/lib/actions/compliance";
 import type { InvoiceReviewRow, PlRow } from "@/lib/actions/compliance";
@@ -10,11 +11,13 @@ import { SectionHeader } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface ComplianceClientProps {
   initialOptIn: boolean;
   draftInvoices: InvoiceReviewRow[];
   plRows: PlRow[];
+  propertyId?: string;
 }
 
 export function ComplianceClient({
@@ -32,13 +35,27 @@ export function ComplianceClient({
   function handleOptIn(checked: boolean) {
     setOptIn(checked);
     startTransition(async () => {
-      await setEtimsOptIn(checked);
+      const result = await setEtimsOptIn(checked);
+      if (result.error) toast.error(result.error);
     });
   }
 
   function handleFile(invoiceId: string) {
     startTransition(async () => {
-      await fileInvoiceToEtims(invoiceId);
+      const result = await fileInvoiceToEtims(invoiceId);
+      if (result.error) toast.error(result.error);
+      else toast.success(result.message ?? "Filed to eTIMS");
+    });
+  }
+
+  function handleShare(invoiceId: string) {
+    startTransition(async () => {
+      const result = await getInvoiceShareUrl(invoiceId);
+      if (result.error) toast.error(result.error);
+      else if (result.url) {
+        await navigator.clipboard.writeText(result.url);
+        toast.success("Share link copied — send to your guest");
+      }
     });
   }
 
@@ -51,7 +68,7 @@ export function ComplianceClient({
               eTIMS opt-in
             </Label>
             <p className="text-sm text-muted-foreground">
-              Off by default. Financial data stays private until you enable KRA filing.
+              Off by default. When enabled, invoices go through DigiTax review before PDF with KRA QR.
             </p>
           </div>
           <Button
@@ -68,7 +85,7 @@ export function ComplianceClient({
       <div>
         <SectionHeader
           title="Tax Review Room"
-          description="Invoices awaiting manual review before eTIMS filing"
+          description="Invoices awaiting review before eTIMS filing via DigiTax"
         />
         {draftInvoices.length === 0 ? (
           <p className="text-sm text-muted-foreground">No invoices in draft review.</p>
@@ -77,7 +94,7 @@ export function ComplianceClient({
             {draftInvoices.map((inv) => (
               <div
                 key={inv.id}
-                className="flex items-center justify-between rounded-xl border border-border px-4 py-3"
+                className="flex flex-col gap-2 rounded-xl border border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="font-medium">
@@ -90,13 +107,25 @@ export function ComplianceClient({
                     {inv.property_name ?? "Unit"} · {inv.status}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  disabled={!optIn || isPending}
-                  onClick={() => handleFile(inv.id)}
-                >
-                  File to eTIMS
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    disabled={!optIn || isPending}
+                    onClick={() => handleFile(inv.id)}
+                  >
+                    File to eTIMS
+                  </Button>
+                  {inv.pdf_url && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isPending}
+                      onClick={() => handleShare(inv.id)}
+                    >
+                      Share with guest
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

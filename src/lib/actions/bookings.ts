@@ -160,16 +160,40 @@ export async function updateUnitLastSynced(propertyId: string, syncedAt: string)
   return { success: true };
 }
 
-export async function createInvoiceRecord(bookingId: string, totalAmount: number, pdfUrl?: string) {
+export async function createInvoiceRecord(
+  bookingId: string,
+  totalAmount: number,
+  pdfUrl?: string,
+  propertyId?: string
+) {
+  const { getEtimsOptIn } = await import("@/lib/actions/compliance");
   const supabase = await createDataClient();
+  const optIn = await getEtimsOptIn();
+
+  let resolvedPropertyId = propertyId;
+  if (!resolvedPropertyId) {
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("property_id")
+      .eq("id", bookingId)
+      .maybeSingle();
+    resolvedPropertyId = booking?.property_id;
+  }
+
   const { error } = await supabase.from("invoices").insert({
     booking_id: bookingId,
     total_amount: totalAmount,
     pdf_url: pdfUrl ?? null,
+    property_id: resolvedPropertyId ?? null,
+    gross_amount: totalAmount,
+    net_amount: totalAmount,
+    vat_amount: 0,
+    status: optIn ? "draft_review" : "private_only",
   });
 
   if (error) return { error: error.message };
-  return { success: true };
+  revalidatePath("/unit");
+  return { success: true, draftReview: optIn };
 }
 
 export async function getBookingsWithRevenue() {

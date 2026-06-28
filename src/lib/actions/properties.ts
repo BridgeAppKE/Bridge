@@ -20,6 +20,21 @@ export async function getUserProperties(): Promise<Property[]> {
   return data ?? [];
 }
 
+export async function getPropertyForOwner(propertyId: string) {
+  const user = await getSessionUser();
+  if (!user) return null;
+
+  const supabase = await createDataClient();
+  const { data } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", propertyId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  return data;
+}
+
 export async function ensureDefaultProperty() {
   const onboardingDone = await import("@/lib/actions/onboarding").then((m) =>
     m.isOnboardingComplete()
@@ -73,7 +88,6 @@ export async function createUnit(formData: FormData) {
 
   revalidatePath("/calendar");
   revalidatePath("/home");
-  revalidatePath("/inventory");
-  revalidatePath("/expenses");
+  revalidatePath("/unit");
   return { success: true };
 }

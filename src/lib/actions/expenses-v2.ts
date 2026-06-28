@@ -81,6 +81,7 @@ export async function createExpense(formData: FormData) {
   }
 
   revalidatePath("/expenses");
+  revalidatePath("/unit");
   revalidatePath("/home");
   return { success: true };
 }

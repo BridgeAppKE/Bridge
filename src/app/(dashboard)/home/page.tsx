@@ -4,8 +4,7 @@ import { getBookingsWithRevenue } from "@/lib/actions/bookings";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { getHostProfile } from "@/lib/actions/onboarding";
 import { userHasAnyIcalFeed } from "@/lib/actions/ical-feeds";
-import { getLatestActiveTask } from "@/lib/actions/operations";
-import { HomeBentoDashboard } from "@/components/home/home-bento-dashboard";
+import { HomeScopedDashboard } from "@/components/home/home-scoped-dashboard";
 import type { HomeBentoData } from "@/components/home/home-bento-dashboard";
 import {
   buildRevenueTrendFromBookings,
@@ -17,13 +16,11 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const profile = await getHostProfile();
 
-  const [inventoryRules, circleMembers, bookings, hasIcal, activeTask] =
-    await Promise.all([
+  const [inventoryRules, circleMembers, bookings, hasIcal] = await Promise.all([
       getInventoryItems(),
       getCircleInvitations(),
       getBookingsWithRevenue(),
       userHasAnyIcalFeed(),
-      getLatestActiveTask(),
     ]);
 
   const firstName =
@@ -80,18 +77,8 @@ export default async function HomePage() {
     revenueTrend: buildRevenueTrendFromBookings(bookings),
     revenueChangePercent: revenueChangePercent(bookings),
     inventoryAlerts,
-    latestCleanerJob: activeTask
-      ? {
-          id: activeTask.id,
-          propertyName: activeTask.properties?.name ?? "Unit",
-          completedAt: activeTask.due_at
-            ? `Due ${new Date(activeTask.due_at).toLocaleString("en-KE")}`
-            : activeTask.status.replace("_", " "),
-          verified: activeTask.status === "completed",
-        }
-      : null,
     showIcalNudge,
   };
 
-  return <HomeBentoDashboard data={bentoData} />;
+  return <HomeScopedDashboard data={bentoData} />;
 }

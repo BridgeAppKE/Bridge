@@ -9,18 +9,33 @@ export type TaskWithProperty = OperationalTask & {
 };
 
 export async function getOperationalTasks(
+  propertyIdOrStatus?: string | OperationalTask["status"],
   status?: OperationalTask["status"]
 ): Promise<TaskWithProperty[]> {
   const supabase = await createDataClient();
   const user = await getSessionUser();
   if (!user) return [];
 
+  let propertyId: string | undefined;
+  let statusFilter = status;
+
+  if (
+    propertyIdOrStatus === "pending" ||
+    propertyIdOrStatus === "in_progress" ||
+    propertyIdOrStatus === "completed"
+  ) {
+    statusFilter = propertyIdOrStatus;
+  } else if (propertyIdOrStatus) {
+    propertyId = propertyIdOrStatus;
+  }
+
   let query = supabase
     .from("operational_tasks")
     .select("*, properties(name)")
     .order("created_at", { ascending: false });
 
-  if (status) query = query.eq("status", status);
+  if (propertyId) query = query.eq("property_id", propertyId);
+  if (statusFilter) query = query.eq("status", statusFilter);
 
   const { data, error } = await query;
   if (error) {
@@ -66,6 +81,7 @@ export async function createOperationalTask(formData: FormData) {
   }
 
   revalidatePath("/operations");
+  revalidatePath("/unit");
   revalidatePath("/home");
   return { success: true };
 }
@@ -94,6 +110,7 @@ export async function completeTask(taskId: string, proofPath?: string) {
   }
 
   revalidatePath("/operations");
+  revalidatePath("/unit");
   revalidatePath("/home");
   return { success: true };
 }

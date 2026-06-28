@@ -94,8 +94,83 @@ export async function createInventoryItem(formData: FormData) {
   }
 
   revalidatePath("/inventory");
+  revalidatePath("/unit");
   revalidatePath("/home");
   return { success: true };
+}
+
+export async function bulkCreateInventoryItems(
+  propertyId: string,
+  itemNames: string[]
+) {
+  if (!propertyId || !itemNames.length) {
+    return { error: "Select at least one item." };
+  }
+
+  const supabase = await createDataClient();
+  const table = await inventoryTable(supabase);
+  const { AIRBNB_CHECKLIST_ITEMS } = await import("@/lib/inventory/checklist-presets");
+
+  const presetMap = new Map<string, (typeof AIRBNB_CHECKLIST_ITEMS)[number]>(
+    AIRBNB_CHECKLIST_ITEMS.map((i) => [i.name, i])
+  );
+
+  for (const name of itemNames) {
+    const preset = presetMap.get(name);
+    if (table === TABLE) {
+      const { error } = await supabase.from(TABLE).insert({
+        property_id: propertyId,
+        name,
+        category: "non_perishable",
+        quantity: preset?.quantity ?? 1,
+        alert_threshold: preset?.alert_threshold ?? 1,
+        usage_per_guest: 1,
+      });
+      if (error && error.code !== "23505") return { error: error.message };
+    } else {
+      const { error } = await supabase.from("inventory_rules").insert({
+        property_id: propertyId,
+        item_name: name,
+        current_stock: preset?.quantity ?? 1,
+        alert_threshold: preset?.alert_threshold ?? 1,
+        usage_per_guest: 1,
+      });
+      if (error && error.code !== "23505") return { error: error.message };
+    }
+  }
+
+  revalidatePath("/unit");
+  revalidatePath("/home");
+  return { success: true, count: itemNames.length };
+}
+
+export async function updateInventoryQuantity(itemId: string, delta: number) {
+  const supabase = await createDataClient();
+  const table = await inventoryTable(supabase);
+
+  const qtyField = table === TABLE ? "quantity" : "current_stock";
+
+  const { data: item, error: fetchError } = await supabase
+    .from(table)
+    .select(`id, ${qtyField}`)
+    .eq("id", itemId)
+    .single();
+
+  if (fetchError || !item) return { error: "Item not found" };
+
+  const current = Number((item as Record<string, unknown>)[qtyField] ?? 0);
+  const next = Math.max(0, current + delta);
+
+  const { error } = await supabase
+    .from(table)
+    .update({ [qtyField]: next })
+    .eq("id", itemId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/unit");
+  revalidatePath("/home");
+  return { success: true, quantity: next };
 }
 
 export async function updateUsableStatus(itemId: string, status: InventoryItem["usable_status"]) {

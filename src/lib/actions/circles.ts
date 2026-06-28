@@ -272,6 +272,128 @@ export async function getCircleMembers() {
   return invitations.filter((i) => i.status === "accepted" || i.status === "pending");
 }
 
+export type PeerAvailabilityRow = {
+  property_id: string;
+  property_name: string;
+  host_name: string;
+  bedrooms: number;
+  is_own: boolean;
+  is_available: boolean;
+};
+
+function datesOverlap(
+  startA: string,
+  endA: string,
+  startB: string,
+  endB: string
+): boolean {
+  return startA < endB && endA > startB;
+}
+
+export async function searchPeerAvailability(
+  checkIn: string,
+  checkOut: string
+): Promise<PeerAvailabilityRow[]> {
+  const user = await getSessionUser();
+  if (!user) return [];
+
+  const supabase = await createDataClient();
+
+  const { data: memberships } = await supabase
+    .from("circle_members")
+    .select("circle_id")
+    .eq("profile_id", user.id);
+
+  let circleIds = memberships?.map((m) => m.circle_id) ?? [];
+  if (!circleIds.length) {
+    const id = await ensureDefaultCircle(user.id, supabase);
+    circleIds = [id];
+  }
+
+  const { data: members } = await supabase
+    .from("circle_members")
+    .select("profile_id, circle_id")
+    .in("circle_id", circleIds);
+
+  const visibleOwnerIds = new Set(members?.map((m) => m.profile_id) ?? []);
+  visibleOwnerIds.add(user.id);
+
+  const { data: properties, error } = await supabase
+    .from("properties")
+    .select("id, name, owner_id, bedrooms")
+    .in("owner_id", Array.from(visibleOwnerIds))
+    .order("name");
+
+  if (error) throw new Error(error.message);
+  if (!properties?.length) return [];
+
+  const ownerIds = Array.from(new Set(properties.map((p) => p.owner_id)));
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, legal_name")
+    .in("id", ownerIds);
+
+  const profileMap = new Map(
+    profiles?.map((p) => [p.id, p.legal_name ?? p.full_name ?? "Host"]) ?? []
+  );
+
+  const propertyIds = properties.map((p) => p.id);
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("property_id, start_date, end_date, is_manual_block")
+    .in("property_id", propertyIds);
+
+  return properties.map((property) => {
+    const propertyBookings = (bookings ?? []).filter(
+      (b) => b.property_id === property.id
+    );
+    const hasConflict = propertyBookings.some((b) =>
+      datesOverlap(checkIn, checkOut, b.start_date, b.end_date)
+    );
+
+    return {
+      property_id: property.id,
+      property_name: property.name,
+      host_name: profileMap.get(property.owner_id) ?? "Host",
+      bedrooms: (property as { bedrooms?: number }).bedrooms ?? 1,
+      is_own: property.owner_id === user.id,
+      is_available: !hasConflict,
+    };
+  }).filter((row) => row.is_available && !row.is_own);
+}
+
+export async function getCircleInviteUrl(): Promise<string | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+
+  const supabase = await createDataClient();
+  const circleId = await ensureDefaultCircle(user.id, supabase);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("short_code")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.short_code) {
+    const { getRequestOrigin } = await import("@/lib/env");
+    const origin = await getRequestOrigin();
+    return `${origin}/join/${profile.short_code}`;
+  }
+
+  const { data: tokenRow, error } = await supabase
+    .from("circle_invite_tokens")
+    .insert({ inviter_id: user.id, circle_id: circleId })
+    .select("token")
+    .single();
+
+  if (error) return null;
+
+  const { getRequestOrigin } = await import("@/lib/env");
+  const origin = await getRequestOrigin();
+  return `${origin}/join/${tokenRow.token}`;
+}
+
 export async function getAvailabilityList(circleId?: string): Promise<AvailabilityProperty[]> {
   const user = await getSessionUser();
   if (!user) return [];

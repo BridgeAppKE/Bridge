@@ -1,39 +1,32 @@
 import {
-  getAvailabilityList,
-  getCircleInvitations,
   getMyCircles,
+  searchPeerAvailability,
+  getCircleInviteUrl,
 } from "@/lib/actions/circles";
-import { InviteToCircleForm } from "@/components/circles/invite-form";
-import { CircleMembers } from "@/components/circles/circle-members";
-import { AvailabilityList } from "@/components/circles/availability-list";
-import { CircleList } from "@/components/circles/circle-list";
-import { PageShell, GlassSection } from "@/components/layout/page-shell";
+import { getHostProfile } from "@/lib/actions/onboarding";
+import { CirclesReferralClient } from "@/components/circles/circles-referral-client";
 
 export default async function CirclesPage() {
-  const [circles, invitations, availability] = await Promise.all([
+  const [circles, profile, inviteUrl] = await Promise.all([
     getMyCircles(),
-    getCircleInvitations(),
-    getAvailabilityList(),
+    getHostProfile(),
+    getCircleInviteUrl(),
   ]);
 
-  const members = invitations.filter(
-    (i) => i.status === "accepted" || i.status === "pending"
-  );
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  const checkIn = today.toISOString().slice(0, 10);
+  const checkOut = nextWeek.toISOString().slice(0, 10);
+
+  const initialResults = await searchPeerAvailability(checkIn, checkOut);
 
   return (
-    <PageShell title="Circles" subtitle="Your trusted host network in Kenya">
-      <GlassSection>
-        <CircleList circles={circles} />
-      </GlassSection>
-      <GlassSection>
-        <InviteToCircleForm circles={circles} />
-      </GlassSection>
-      <GlassSection>
-        <CircleMembers members={members} />
-      </GlassSection>
-      <GlassSection>
-        <AvailabilityList properties={availability} />
-      </GlassSection>
-    </PageShell>
+    <CirclesReferralClient
+      initialResults={initialResults}
+      circles={circles}
+      hostShortCode={profile?.short_code ?? null}
+      inviteUrl={inviteUrl}
+    />
   );
 }

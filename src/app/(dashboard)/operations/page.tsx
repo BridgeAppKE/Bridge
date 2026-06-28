@@ -1,26 +1,5 @@
-import { PageShell, GlassSection } from "@/components/layout/page-shell";
-import { getOperationalTasks } from "@/lib/actions/operations";
-import {
-  ensureDefaultProperty,
-  getUserProperties,
-} from "@/lib/actions/properties";
-import { OperationsClient } from "@/components/operations/operations-client";
+import { redirect } from "next/navigation";
 
-export default async function OperationsPage() {
-  await ensureDefaultProperty();
-  const [properties, tasks] = await Promise.all([
-    getUserProperties(),
-    getOperationalTasks(),
-  ]);
-
-  return (
-    <PageShell
-      title="Operations"
-      subtitle="Staff tasks, turnover dispatch, and photo proof"
-    >
-      <GlassSection>
-        <OperationsClient properties={properties} tasks={tasks} />
-      </GlassSection>
-    </PageShell>
-  );
+export default function OperationsRedirect() {
+  redirect("/unit");
 }

@@ -41,13 +41,13 @@ export function BlockDatesDialog({ propertyId, propertyName }: BlockDatesDialogP
         variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
-        className="tap-scale border-glass-border bg-glass gap-2"
+        className="tap-scale gap-2"
       >
         <CalendarOff className="h-4 w-4" />
         Block Dates
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-glass-border sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Block Dates</DialogTitle>
             <DialogDescription>
@@ -58,11 +58,11 @@ export function BlockDatesDialog({ propertyId, propertyName }: BlockDatesDialogP
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="block-start">From</Label>
-                <Input id="block-start" name="start_date" type="date" required className="bg-glass border-glass-border" />
+                <Input id="block-start" name="start_date" type="date" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="block-end">To</Label>
-                <Input id="block-end" name="end_date" type="date" required className="bg-glass border-glass-border" />
+                <Input id="block-end" name="end_date" type="date" required />
               </div>
             </div>
             <Button type="submit" disabled={isPending} className="w-full">

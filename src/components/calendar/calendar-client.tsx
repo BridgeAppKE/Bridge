@@ -10,6 +10,8 @@ import { AddUnitDialog } from "@/components/units/add-unit-dialog";
 import { BlockDatesDialog } from "@/components/units/block-dates-dialog";
 import { GenerateInvoiceButton } from "@/components/bookings/generate-invoice-button";
 import { FinalizeBookingButton } from "@/components/bookings/finalize-booking-button";
+import { AirbnbIcalSyncSequence } from "@/components/ical/airbnb-ical-sync-sequence";
+import { IcalExportPanel } from "@/components/ical/ical-export-panel";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -32,9 +34,10 @@ type BookingRow = {
 interface CalendarClientProps {
   units: Property[];
   bookings: BookingRow[];
+  siteOrigin: string;
 }
 
-export function CalendarClient({ units, bookings }: CalendarClientProps) {
+export function CalendarClient({ units, bookings, siteOrigin }: CalendarClientProps) {
   const [selectedId, setSelectedId] = useState(units[0]?.id ?? "");
   const [syncTimes, setSyncTimes] = useState<Record<string, string | null>>(
     Object.fromEntries(units.map((u) => [u.id, u.last_synced_at]))
@@ -92,10 +95,30 @@ export function CalendarClient({ units, bookings }: CalendarClientProps) {
             </div>
             {!selected?.ical_url && (
               <p className="text-xs text-muted-foreground">
-                Add an iCal URL to this unit to import bookings from Airbnb, Booking.com, etc.
+                Connect Airbnb below to import bookings automatically.
               </p>
             )}
           </GlassSection>
+
+          {selected && (
+            <>
+              <GlassSection>
+                <AirbnbIcalSyncSequence
+                  propertyId={selected.id}
+                  showSkip={false}
+                  onConnected={() => window.location.reload()}
+                />
+              </GlassSection>
+              {(selected as Property & { ical_export_token?: string }).ical_export_token && (
+                <GlassSection>
+                  <IcalExportPanel
+                    property={selected}
+                    exportUrl={`${siteOrigin}/api/units/${(selected as Property & { ical_export_token?: string }).ical_export_token}/ical`}
+                  />
+                </GlassSection>
+              )}
+            </>
+          )}
 
           <GlassSection>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -108,7 +131,7 @@ export function CalendarClient({ units, bookings }: CalendarClientProps) {
                 {unitBookings.map((b) => (
                   <li
                     key={b.id}
-                    className="flex items-center justify-between rounded-2xl border border-glass-border bg-glass px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-sm"
                   >
                     <span>
                       {new Date(b.start_date).toLocaleDateString("en-KE", {
@@ -155,7 +178,7 @@ export function CalendarClient({ units, bookings }: CalendarClientProps) {
               {bookings.slice(0, 8).map((b) => (
                 <li
                   key={`all-${b.id}`}
-                  className="flex items-center justify-between rounded-2xl border border-glass-border bg-glass px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-sm"
                 >
                   <span className="text-foreground">{b.properties?.name ?? "Unit"}</span>
                   <span className="text-muted-foreground">
@@ -185,7 +208,7 @@ function LabelUnitSelect({
 }) {
   return (
     <Select value={selectedId} onValueChange={(v) => v && onChange(v)}>
-      <SelectTrigger className="w-full max-w-xs bg-glass border-glass-border">
+      <SelectTrigger className="w-full max-w-xs">
         <SelectValue placeholder="Select unit" />
       </SelectTrigger>
       <SelectContent>

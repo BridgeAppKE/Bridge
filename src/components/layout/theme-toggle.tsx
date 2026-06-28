@@ -31,7 +31,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       variant="ghost"
       size="icon-sm"
       className={cn(
-        "text-muted-foreground hover:bg-glass hover:text-foreground tap-scale",
+        "text-muted-foreground hover:bg-muted hover:text-foreground tap-scale",
         className
       )}
       onClick={() => setTheme(isDark ? "light" : "dark")}

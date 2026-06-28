@@ -14,6 +14,7 @@ import { WireSectionHeader } from "@/components/ui/wire";
 import { cn } from "@/lib/utils";
 import { exportRowsToExcel } from "@/lib/export/to-excel";
 import { Button } from "@/components/ui/button";
+import { sectionLabelClass } from "@/lib/design/tokens";
 
 export type RevenuePoint = { label: string; value: number };
 
@@ -25,6 +26,7 @@ interface FinancialTileProps {
   yearRevenue: number;
   trend: RevenuePoint[];
   changePercent: number;
+  compact?: boolean;
 }
 
 function formatKes(amount: number) {
@@ -41,6 +43,7 @@ export function FinancialTile({
   yearRevenue,
   trend,
   changePercent,
+  compact = false,
 }: FinancialTileProps) {
   const [period, setPeriod] = useState<Period>("month");
 
@@ -53,18 +56,28 @@ export function FinancialTile({
   const periodLabel =
     period === "month" ? "This month" : period === "quarter" ? "This quarter" : "This year";
 
-  return (
-    <GlassTile gridArea="md:col-span-2 md:row-span-1" className="min-h-[160px]" hoverScale={false}>
-      <div className="flex h-full flex-col justify-between">
-        <div className="flex items-start justify-between gap-2">
-          <div>
+  const inner = (
+    <div className={cn("flex h-full flex-col justify-between", compact && "p-5")}>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          {compact ? (
+            <>
+              <p className={sectionLabelClass}>Revenue</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-foreground">
+                {formatKes(displayRevenue)}
+              </p>
+              <p className="text-xs text-muted-foreground">{periodLabel}</p>
+            </>
+          ) : (
             <WireSectionHeader
               eyebrow="Revenue"
               title={formatKes(displayRevenue)}
               description={periodLabel}
               className="mb-0"
             />
-          </div>
+          )}
+        </div>
+        {!compact && (
           <div className="flex flex-col items-end gap-2">
             <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
               {(["month", "quarter", "year"] as Period[]).map((p) => (
@@ -89,8 +102,21 @@ export function FinancialTile({
               {changePercent}%
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
+      {compact ? (
+        changePercent !== 0 && (
+          <p
+            className={cn(
+              "text-xs font-medium",
+              changePercent >= 0 ? "text-foreground" : "text-destructive"
+            )}
+          >
+            {changePercent >= 0 ? "↑" : "↓"} {Math.abs(changePercent).toFixed(0)}% vs prior
+          </p>
+        )
+      ) : (
         <div className="mt-3 flex items-end justify-between gap-2">
           <div className="h-16 flex-1">
             <ResponsiveContainer width="100%" height="100%">
@@ -130,7 +156,17 @@ export function FinancialTile({
             Excel
           </Button>
         </div>
-      </div>
+      )}
+    </div>
+  );
+
+  if (compact) {
+    return inner;
+  }
+
+  return (
+    <GlassTile gridArea="md:col-span-2 md:row-span-1" className="min-h-[160px]">
+      {inner}
     </GlassTile>
   );
 }

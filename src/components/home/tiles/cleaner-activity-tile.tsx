@@ -1,7 +1,7 @@
 "use client";
 
 import { BadgeCheck } from "lucide-react";
-import { GlassTile } from "@/components/ui/glass-tile";
+import { GlassTile, PanelTile } from "@/components/ui/glass-tile";
 import { WirePlaceholder, WireSectionHeader } from "@/components/ui/wire";
 
 export type CleanerJob = {
@@ -14,20 +14,20 @@ export type CleanerJob = {
 
 interface CleanerActivityTileProps {
   job: CleanerJob | null;
+  fullWidth?: boolean;
 }
 
-export function CleanerActivityTile({ job }: CleanerActivityTileProps) {
-  return (
-    <GlassTile gridArea="md:col-span-1 md:row-span-2" className="min-h-[280px]">
-      <WireSectionHeader eyebrow="Operations" title="Cleaner Activity" />
-
+export function CleanerActivityTile({ job, fullWidth }: CleanerActivityTileProps) {
+  const content = (
+    <>
+      <WireSectionHeader eyebrow="Operations" title="Staff Dispatch" />
       {!job ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
+        <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
           <WirePlaceholder aspectRatio="aspect-square" className="h-16 w-16" label="—" />
-          <p className="text-sm text-muted-foreground">No completed jobs yet.</p>
+          <p className="text-sm text-muted-foreground">No active tasks yet.</p>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-3">
           <div className="relative overflow-hidden rounded-lg border border-border">
             {job.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -52,6 +52,16 @@ export function CleanerActivityTile({ job }: CleanerActivityTileProps) {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (fullWidth) {
+    return <PanelTile>{content}</PanelTile>;
+  }
+
+  return (
+    <GlassTile gridArea="md:col-span-1 md:row-span-2" className="min-h-[280px]">
+      {content}
     </GlassTile>
   );
 }

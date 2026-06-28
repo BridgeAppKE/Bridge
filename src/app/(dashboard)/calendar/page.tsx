@@ -1,13 +1,14 @@
-import { ensureDefaultProperty, getUserProperties } from "@/lib/actions/properties";
+import { getUserProperties } from "@/lib/actions/properties";
 import { getAllVisibleBookings } from "@/lib/actions/bookings";
 import { CalendarClient } from "@/components/calendar/calendar-client";
+import { getRequestOrigin } from "@/lib/env";
 
 export default async function CalendarPage() {
-  await ensureDefaultProperty();
-  const [units, bookings] = await Promise.all([
+  const [units, bookings, siteOrigin] = await Promise.all([
     getUserProperties(),
     getAllVisibleBookings(),
+    getRequestOrigin(),
   ]);
 
-  return <CalendarClient units={units} bookings={bookings} />;
+  return <CalendarClient units={units} bookings={bookings} siteOrigin={siteOrigin} />;
 }

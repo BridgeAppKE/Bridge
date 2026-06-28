@@ -56,10 +56,7 @@ export function SyncButton({
         size="sm"
         onClick={handleClick}
         disabled={isPending}
-        className={cn(
-          "tap-scale gap-2 bg-emerald-600 font-semibold tracking-wide hover:bg-emerald-700",
-          "dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
-        )}
+        className="tap-scale gap-2"
       >
         <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
         {isPending ? "Syncing…" : label}

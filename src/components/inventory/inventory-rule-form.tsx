@@ -110,13 +110,13 @@ export function InventoryRuleForm({ properties }: InventoryRuleFormProps) {
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-400 dark:text-emerald-950"
+          className="w-full"
         >
           {isPending ? "Saving…" : "Add Rule"}
         </Button>
       </form>
       {success && (
-        <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">Rule added successfully.</p>
+        <p className="mt-3 text-sm text-muted-foreground">Rule added successfully.</p>
       )}
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
     </div>

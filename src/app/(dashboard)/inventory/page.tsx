@@ -1,33 +1,29 @@
 import { PageShell, GlassSection } from "@/components/layout/page-shell";
-import { getInventoryRules } from "@/lib/actions/inventory";
+import { getInventoryItems } from "@/lib/actions/inventory-v2";
 import {
   ensureDefaultProperty,
   getUserProperties,
 } from "@/lib/actions/properties";
-import { InventoryRuleForm } from "@/components/inventory/inventory-rule-form";
-import { InventoryList } from "@/components/inventory/inventory-list";
+import { InventoryTabs } from "@/components/inventory/inventory-tabs";
 import { SimulateCheckout } from "@/components/inventory/simulate-checkout";
 
 export default async function InventoryPage() {
   await ensureDefaultProperty();
-  const [properties, rules] = await Promise.all([
+  const [properties, items] = await Promise.all([
     getUserProperties(),
-    getInventoryRules(),
+    getInventoryItems(),
   ]);
 
   return (
     <PageShell
       title="Inventory"
-      subtitle="Automate consumable tracking per guest checkout"
+      subtitle="Perishable, usable, and non-perishable stock by unit"
     >
       <GlassSection>
-        <InventoryRuleForm properties={properties} />
+        <InventoryTabs properties={properties} items={items} />
       </GlassSection>
       <GlassSection>
         <SimulateCheckout properties={properties} />
-      </GlassSection>
-      <GlassSection>
-        <InventoryList rules={rules} />
       </GlassSection>
     </PageShell>
   );

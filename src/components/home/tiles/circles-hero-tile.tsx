@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BroadcastInquiryDialog } from "@/components/home/broadcast-inquiry-dialog";
 import { WireListRow, WireSectionHeader } from "@/components/ui/wire";
 import { Button } from "@/components/ui/button";
+import { circleInviteWhatsAppUrl } from "@/lib/ical/validators";
 
 export type CircleMemberDisplay = {
   id: string;
@@ -17,6 +18,8 @@ export type CircleMemberDisplay = {
 
 interface CirclesHeroTileProps {
   members: CircleMemberDisplay[];
+  compact?: boolean;
+  shortCode?: string | null;
 }
 
 function initials(name: string) {
@@ -28,28 +31,48 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export function CirclesHeroTile({ members }: CirclesHeroTileProps) {
+export function CirclesHeroTile({
+  members,
+  compact = false,
+  shortCode,
+}: CirclesHeroTileProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const activeMembers = members.slice(0, 3);
+  const activeMembers = members.slice(0, compact ? 1 : 3);
+  const freeUnits = members.reduce((s, m) => s + m.unitsAvailable, 0);
+  const waShare = shortCode
+    ? circleInviteWhatsAppUrl(shortCode, "EliteHost Host")
+    : null;
 
-  return (
+  const inner = (
     <>
-      <GlassTile gridArea="md:col-span-2 md:row-span-2" className="min-h-[280px]">
-        <WireSectionHeader
-          eyebrow="Circles"
-          title="Network Status"
-          description={
-            members.length
-              ? `${members.length} trusted peer${members.length === 1 ? "" : "s"} connected`
-              : "Invite hosts to unlock referrals"
-          }
-        />
+      <WireSectionHeader
+        eyebrow="Circles"
+        title={compact ? `${freeUnits || 0} Units Free` : "Network Status"}
+        titleClassName={compact ? "text-2xl font-semibold tracking-tight tabular-nums" : undefined}
+        description={
+          members.length
+            ? `${members.length} peer${members.length === 1 ? "" : "s"} connected`
+            : "Share your code to grow your Circle"
+        }
+        className="mb-0"
+      />
 
+      {!compact && (
         <div className="mt-2 flex-1 space-y-2">
           {activeMembers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No active Circle members yet.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">No active Circle members yet.</p>
+              {waShare && (
+                <a
+                  href={waShare}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-foreground underline underline-offset-4"
+                >
+                  Share invite code on WhatsApp
+                </a>
+              )}
+            </div>
           ) : (
             activeMembers.map((member) => (
               <WireListRow
@@ -75,18 +98,29 @@ export function CirclesHeroTile({ members }: CirclesHeroTileProps) {
             ))
           )}
         </div>
+      )}
 
-        <Button
-          type="button"
-          className="mt-4 w-full gap-2"
-          onClick={() => setDialogOpen(true)}
-        >
-          <Radio className="h-4 w-4" />
-          Broadcast Inquiry
-        </Button>
-      </GlassTile>
+      <Button
+        type="button"
+        size={compact ? "sm" : "default"}
+        className={compact ? "mt-3 w-full gap-1 text-xs" : "mt-4 w-full gap-2"}
+        onClick={() => setDialogOpen(true)}
+      >
+        <Radio className="h-3.5 w-3.5" />
+        Broadcast
+      </Button>
 
       <BroadcastInquiryDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
+  );
+
+  if (compact) {
+    return <div className="flex h-full flex-col justify-between">{inner}</div>;
+  }
+
+  return (
+    <GlassTile gridArea="md:col-span-2 md:row-span-2" className="min-h-[280px]">
+      {inner}
+    </GlassTile>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { GlassTile } from "@/components/ui/glass-tile";
+import { GlassTile, PanelTile } from "@/components/ui/glass-tile";
 import { WireSectionHeader } from "@/components/ui/wire";
 import { cn } from "@/lib/utils";
 
@@ -14,20 +14,17 @@ export type InventoryAlert = {
 
 interface InventoryAlertsTileProps {
   items: InventoryAlert[];
+  fullWidth?: boolean;
 }
 
-export function InventoryAlertsTile({ items }: InventoryAlertsTileProps) {
-  return (
-    <GlassTile gridArea="md:col-span-1 md:row-span-2" className="min-h-[280px]">
-      <WireSectionHeader
-        eyebrow="Inventory"
-        title="Replenishment Alerts"
-      />
-
+export function InventoryAlertsTile({ items, fullWidth }: InventoryAlertsTileProps) {
+  const content = (
+    <>
+      <WireSectionHeader eyebrow="Inventory" title="Replenishment Alerts" />
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">All stock levels healthy.</p>
       ) : (
-        <ul className="flex flex-1 flex-col gap-4">
+        <ul className="flex flex-col gap-4">
           {items.map((item) => {
             const critical = item.stockPercent < 20;
             return (
@@ -58,6 +55,16 @@ export function InventoryAlertsTile({ items }: InventoryAlertsTileProps) {
           })}
         </ul>
       )}
+    </>
+  );
+
+  if (fullWidth) {
+    return <PanelTile>{content}</PanelTile>;
+  }
+
+  return (
+    <GlassTile gridArea="md:col-span-1 md:row-span-2" className="min-h-[280px]">
+      {content}
     </GlassTile>
   );
 }

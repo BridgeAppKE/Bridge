@@ -132,6 +132,11 @@ try {
   await runSqlFile(client, path.join(root, "supabase/migrations/001_initial_schema.sql"));
   await runSqlFile(client, path.join(root, "supabase/migrations/002_circle_broadcasts.sql"));
   await runSqlFile(client, path.join(root, "supabase/migrations/003_elitehost_extend.sql"));
+  await runSqlFile(client, path.join(root, "supabase/migrations/004_pms_foundation.sql"));
+  await runSqlFile(client, path.join(root, "supabase/migrations/005_circles_privacy.sql"));
+  await runSqlFile(client, path.join(root, "supabase/migrations/006_inventory_expenses_ai.sql"));
+  await runSqlFile(client, path.join(root, "supabase/migrations/007_operations.sql"));
+  await runSqlFile(client, path.join(root, "supabase/migrations/008_compliance_pl.sql"));
 
   const result = await verify(client);
   console.log("\nMigration complete.");

@@ -84,7 +84,7 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
           type="submit"
           variant="outline"
           disabled={isPending}
-          className="w-full border-emerald-500/40 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+          className="w-full"
         >
           {isPending ? "Processing…" : "Simulate Checkout"}
         </Button>

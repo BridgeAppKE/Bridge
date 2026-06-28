@@ -1,7 +1,7 @@
 import {
   getExpenses,
   getExpenseCategories,
-} from "@/lib/actions/expenses";
+} from "@/lib/actions/expenses-v2";
 import {
   ensureDefaultProperty,
   getUserProperties,

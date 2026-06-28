@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 
 interface CircleSyncButtonProps {
   className?: string;
+  circleId?: string;
 }
 
-export function CircleSyncButton({ className }: CircleSyncButtonProps) {
+export function CircleSyncButton({ className, circleId }: CircleSyncButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export function CircleSyncButton({ className }: CircleSyncButtonProps) {
 
     startTransition(async () => {
       try {
-        const units = await getCircleVisibleUnits();
+        const units = await getCircleVisibleUnits(circleId);
         const syncable = units.filter((u) => u.ical_url);
 
         if (!syncable.length) {
@@ -61,7 +62,7 @@ export function CircleSyncButton({ className }: CircleSyncButtonProps) {
         size="sm"
         onClick={handleBatchSync}
         disabled={isPending}
-        className="tap-scale border-glass-border bg-glass gap-2"
+        className="tap-scale gap-2"
       >
         <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
         {isPending ? "Syncing Circle…" : "Sync Circle"}

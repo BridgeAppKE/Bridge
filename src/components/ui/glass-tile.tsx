@@ -1,10 +1,33 @@
-"use client";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { surfacePanelClass } from "@/lib/design/tokens";
 
-import { WireCard, type WireCardProps } from "@/components/ui/wire/wire-card";
+export interface GlassTileProps extends React.ComponentProps<typeof Card> {
+  gridArea?: string;
+  children: React.ReactNode;
+}
 
-export type GlassTileProps = WireCardProps;
+/** Dashboard tile — shadcn Card with consistent panel padding */
+export function GlassTile({
+  gridArea,
+  className,
+  children,
+  ...props
+}: GlassTileProps) {
+  return (
+    <Card className={cn(gridArea, className)} {...props}>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
+    </Card>
+  );
+}
 
-/** Dashboard tile — wireframe module card */
-export function GlassTile(props: GlassTileProps) {
-  return <WireCard {...props} />;
+/** Flat panel wrapper for full-width dashboard rows (no nested card chrome) */
+export function PanelTile({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return <div className={cn(surfacePanelClass, className)}>{children}</div>;
 }

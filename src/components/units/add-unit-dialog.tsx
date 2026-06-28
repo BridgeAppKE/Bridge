@@ -34,13 +34,13 @@ export function AddUnitDialog() {
         type="button"
         size="sm"
         onClick={() => setOpen(true)}
-        className="tap-scale gap-2 bg-emerald-600 dark:bg-emerald-400 dark:text-emerald-950"
+        className="tap-scale gap-2"
       >
         <Plus className="h-4 w-4" />
         Add Unit
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-glass-border sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Unit</DialogTitle>
             <DialogDescription>
@@ -50,11 +50,11 @@ export function AddUnitDialog() {
           <form action={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="unit-name">Unit name</Label>
-              <Input id="unit-name" name="name" required placeholder="Westlands Studio" className="bg-glass border-glass-border" />
+              <Input id="unit-name" name="name" required placeholder="Westlands Studio" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ical_url">iCal URL (optional)</Label>
-              <Input id="ical_url" name="ical_url" type="url" placeholder="https://..." className="bg-glass border-glass-border" />
+              <Input id="ical_url" name="ical_url" type="url" placeholder="https://..." />
             </div>
             <Button type="submit" disabled={isPending} className="w-full">
               {isPending ? "Saving…" : "Create Unit"}

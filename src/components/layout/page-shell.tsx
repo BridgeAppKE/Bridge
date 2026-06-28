@@ -4,11 +4,17 @@ import {
   pageShellClass,
   pageSubtitleClass,
   pageTitleClass,
-  wireCardClass,
-  wireListRowClass,
-  wireSectionLabelClass,
+  sectionLabelClass,
+  surfacePanelClass,
+  listRowClass,
 } from "@/lib/design/tokens";
-import { WireSectionHeader } from "@/components/ui/wire";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PageShellProps {
   title: string;
@@ -29,7 +35,7 @@ export function PageShell({
     <div className={cn(pageShellClass, className)}>
       <header className={cn(pageHeaderClass, "flex items-start justify-between gap-4")}>
         <div>
-          <p className={wireSectionLabelClass}>EliteHost</p>
+          <p className={sectionLabelClass}>EliteHost</p>
           <h1 className={pageTitleClass}>{title}</h1>
           {subtitle && <p className={pageSubtitleClass}>{subtitle}</p>}
         </div>
@@ -43,11 +49,27 @@ export function PageShell({
 export function GlassSection({
   children,
   className,
+  title,
+  description,
 }: {
   children: React.ReactNode;
   className?: string;
+  title?: string;
+  description?: string;
 }) {
-  return <section className={cn(wireCardClass, className)}>{children}</section>;
+  if (title) {
+    return (
+      <Card className={className}>
+        <CardHeader className="border-b">
+          <CardTitle>{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+      </Card>
+    );
+  }
+
+  return <section className={cn(surfacePanelClass, className)}>{children}</section>;
 }
 
 export function SectionHeader({
@@ -57,7 +79,14 @@ export function SectionHeader({
   title: string;
   description?: string;
 }) {
-  return <WireSectionHeader title={title} description={description} />;
+  return (
+    <div className="mb-4 space-y-1">
+      <h2 className="text-base font-semibold text-foreground">{title}</h2>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
+    </div>
+  );
 }
 
-export const listRowClass = wireListRowClass;
+export { listRowClass };

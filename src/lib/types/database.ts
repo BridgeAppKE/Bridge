@@ -139,6 +139,142 @@ export interface Database {
           created_at?: string;
         };
       };
+      circles: {
+        Row: {
+          id: string;
+          name: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+      };
+      circle_members: {
+        Row: {
+          id: string;
+          circle_id: string;
+          profile_id: string;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          circle_id: string;
+          profile_id: string;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          circle_id?: string;
+          profile_id?: string;
+          joined_at?: string;
+        };
+      };
+      circle_invitations: {
+        Row: {
+          id: string;
+          circle_id: string;
+          sender_id: string;
+          receiver_id: string;
+          status: "pending" | "accepted" | "rejected";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          circle_id: string;
+          sender_id: string;
+          receiver_id: string;
+          status?: "pending" | "accepted" | "rejected";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          circle_id?: string;
+          sender_id?: string;
+          receiver_id?: string;
+          status?: "pending" | "accepted" | "rejected";
+          created_at?: string;
+        };
+      };
+      inventory: {
+        Row: {
+          id: string;
+          property_id: string;
+          name: string;
+          category: "perishable" | "usable" | "non_perishable";
+          quantity: number;
+          alert_threshold: number;
+          usage_per_guest: number;
+          usable_status: "available" | "laundry" | "damaged" | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          property_id: string;
+          name: string;
+          category?: "perishable" | "usable" | "non_perishable";
+          quantity?: number;
+          alert_threshold?: number;
+          usage_per_guest?: number;
+          usable_status?: "available" | "laundry" | "damaged" | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          property_id?: string;
+          name?: string;
+          category?: "perishable" | "usable" | "non_perishable";
+          quantity?: number;
+          alert_threshold?: number;
+          usage_per_guest?: number;
+          usable_status?: "available" | "laundry" | "damaged" | null;
+          created_at?: string;
+        };
+      };
+      operational_tasks: {
+        Row: {
+          id: string;
+          property_id: string;
+          booking_id: string | null;
+          title: string;
+          status: "pending" | "in_progress" | "completed" | "cancelled";
+          assigned_to: string | null;
+          due_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          property_id: string;
+          booking_id?: string | null;
+          title: string;
+          status?: "pending" | "in_progress" | "completed" | "cancelled";
+          assigned_to?: string | null;
+          due_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          property_id?: string;
+          booking_id?: string | null;
+          title?: string;
+          status?: "pending" | "in_progress" | "completed" | "cancelled";
+          assigned_to?: string | null;
+          due_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+      };
       inventory_rules: {
         Row: {
           id: string;
@@ -214,11 +350,15 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Property = Database["public"]["Tables"]["properties"]["Row"];
 export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 export type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
-export type CircleNetwork = Database["public"]["Tables"]["circles_network"]["Row"];
+export type CircleNetwork = Database["public"]["Tables"]["circle_invitations"]["Row"];
+export type InventoryItem = Database["public"]["Tables"]["inventory"]["Row"];
+export type OperationalTask = Database["public"]["Tables"]["operational_tasks"]["Row"];
 export type InventoryRule = Database["public"]["Tables"]["inventory_rules"]["Row"];
 export type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
-export type CircleMember = CircleNetwork & {
+export type CircleMember = {
+  id: string;
+  status: "pending" | "accepted" | "rejected";
   peer: Pick<Profile, "id" | "full_name">;
 };
 

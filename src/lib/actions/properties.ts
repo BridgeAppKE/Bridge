@@ -21,6 +21,11 @@ export async function getUserProperties(): Promise<Property[]> {
 }
 
 export async function ensureDefaultProperty() {
+  const onboardingDone = await import("@/lib/actions/onboarding").then((m) =>
+    m.isOnboardingComplete()
+  );
+  if (!onboardingDone) return null;
+
   const supabase = await createDataClient();
   const user = await getSessionUser();
 

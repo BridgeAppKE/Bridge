@@ -19,22 +19,39 @@ export async function broadcastInquiry(formData: FormData) {
 
   if (!user) return { error: "Not authenticated" };
 
-  const { data: circlePeers, error: circleError } = await supabase
-    .from("circles_network")
-    .select("id")
-    .eq("host_id", user.id)
-    .eq("status", "accepted");
+  const circleId = (formData.get("circle_id") as string)?.trim() || null;
 
-  if (circleError) return { error: circleError.message };
+  let targetCircleId = circleId;
+  if (!targetCircleId) {
+    const { data: membership } = await supabase
+      .from("circle_members")
+      .select("circle_id")
+      .eq("profile_id", user.id)
+      .limit(1)
+      .maybeSingle();
 
-  if (!circlePeers?.length) {
+    targetCircleId = membership?.circle_id ?? null;
+  }
+
+  if (!targetCircleId) {
+    return { error: "Create a Circle and add members before broadcasting." };
+  }
+
+  const { count: memberCount, error: memberError } = await supabase
+    .from("circle_members")
+    .select("id", { count: "exact", head: true })
+    .eq("circle_id", targetCircleId);
+
+  if (memberError) return { error: memberError.message };
+  if (!memberCount || memberCount < 2) {
     return {
-      error: "Add accepted Circle members before broadcasting an inquiry.",
+      error: "Add at least one accepted Circle member before broadcasting.",
     };
   }
 
   const { error } = await supabase.from("circle_broadcasts").insert({
     host_id: user.id,
+    circle_id: targetCircleId,
     check_in: checkIn,
     check_out: checkOut,
     guest_count: guestCount,
@@ -56,6 +73,6 @@ export async function broadcastInquiry(formData: FormData) {
   revalidatePath("/circles");
   return {
     success: true,
-    message: `Inquiry sent to ${circlePeers.length} Circle member(s).`,
+    message: `Inquiry sent to your Circle (${Math.max(0, (memberCount ?? 1) - 1)} peer(s)).`,
   };
 }

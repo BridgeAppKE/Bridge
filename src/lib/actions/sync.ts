@@ -46,7 +46,7 @@ export async function mockSyncUnit(propertyId: string) {
   };
 }
 
-export async function getCircleVisibleUnits() {
+export async function getCircleVisibleUnits(circleId?: string) {
   const supabase = await createDataClient();
   const user = await getSessionUser();
 
@@ -59,19 +59,37 @@ export async function getCircleVisibleUnits() {
 
   if (error) throw new Error(error.message);
 
-  const { data: circles } = await supabase
-    .from("circles_network")
-    .select("host_id, trusted_peer_id, status")
-    .eq("status", "accepted")
-    .or(`host_id.eq.${user.id},trusted_peer_id.eq.${user.id}`);
+  let visibleOwnerIds: Set<string> | null = null;
 
-  const peerOwnerIds = new Set<string>();
-  circles?.forEach((c) => {
-    if (c.host_id === user.id) peerOwnerIds.add(c.trusted_peer_id);
-    else peerOwnerIds.add(c.host_id);
-  });
+  if (circleId) {
+    const { data: members } = await supabase
+      .from("circle_members")
+      .select("profile_id")
+      .eq("circle_id", circleId);
 
-  return (properties ?? []).filter(
-    (p) => p.owner_id === user.id || peerOwnerIds.has(p.owner_id)
-  );
+    visibleOwnerIds = new Set(members?.map((m) => m.profile_id) ?? []);
+    visibleOwnerIds.add(user.id);
+  } else {
+    const { data: memberships } = await supabase
+      .from("circle_members")
+      .select("circle_id")
+      .eq("profile_id", user.id);
+
+    const circleIds = memberships?.map((m) => m.circle_id) ?? [];
+    if (circleIds.length) {
+      const { data: members } = await supabase
+        .from("circle_members")
+        .select("profile_id")
+        .in("circle_id", circleIds);
+
+      visibleOwnerIds = new Set(members?.map((m) => m.profile_id) ?? []);
+      visibleOwnerIds.add(user.id);
+    }
+  }
+
+  if (!visibleOwnerIds) {
+    return (properties ?? []).filter((p) => p.owner_id === user.id);
+  }
+
+  return (properties ?? []).filter((p) => visibleOwnerIds!.has(p.owner_id));
 }

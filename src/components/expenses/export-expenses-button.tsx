@@ -33,7 +33,7 @@ export function ExportExpensesButton({ expenses }: { expenses: ExpenseRow[] }) {
       variant="outline"
       size="sm"
       onClick={handleExport}
-      className="tap-scale border-glass-border bg-glass gap-2"
+      className="tap-scale gap-2"
     >
       <Download className="h-4 w-4" />
       Export Excel

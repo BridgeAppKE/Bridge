@@ -1,11 +1,10 @@
-import { getInventoryRules } from "@/lib/actions/inventory";
-import { getCircleMembers } from "@/lib/actions/circles";
+import { getInventoryItems } from "@/lib/actions/inventory-v2";
+import { getCircleInvitations } from "@/lib/actions/circles";
 import { getBookingsWithRevenue } from "@/lib/actions/bookings";
-import {
-  ensureDefaultProperty,
-  getUserProperties,
-} from "@/lib/actions/properties";
 import { getCurrentUser } from "@/lib/actions/auth";
+import { getHostProfile } from "@/lib/actions/onboarding";
+import { userHasAnyIcalFeed } from "@/lib/actions/ical-feeds";
+import { getLatestActiveTask } from "@/lib/actions/operations";
 import { HomeBentoDashboard } from "@/components/home/home-bento-dashboard";
 import type { HomeBentoData } from "@/components/home/home-bento-dashboard";
 import {
@@ -15,17 +14,20 @@ import {
 } from "@/lib/revenue";
 
 export default async function HomePage() {
-  await ensureDefaultProperty();
-
   const user = await getCurrentUser();
-  const [properties, inventoryRules, circleMembers, bookings] = await Promise.all([
-    getUserProperties(),
-    getInventoryRules(),
-    getCircleMembers(),
-    getBookingsWithRevenue(),
-  ]);
+  const profile = await getHostProfile();
+
+  const [inventoryRules, circleMembers, bookings, hasIcal, activeTask] =
+    await Promise.all([
+      getInventoryItems(),
+      getCircleInvitations(),
+      getBookingsWithRevenue(),
+      userHasAnyIcalFeed(),
+      getLatestActiveTask(),
+    ]);
 
   const firstName =
+    profile?.legal_name?.split(" ")[0] ??
     user?.user_metadata?.full_name?.split(" ")[0] ??
     user?.email?.split("@")[0] ??
     "Host";
@@ -50,22 +52,27 @@ export default async function HomePage() {
 
   const inventoryAlerts = inventoryRules
     .map((rule) => {
-      const maxStock = Math.max(rule.current_stock, rule.alert_threshold, 1);
-      const percent = Math.round((rule.current_stock / maxStock) * 100);
+      const maxStock = Math.max(rule.quantity, rule.alert_threshold, 1);
+      const percent = Math.round((rule.quantity / maxStock) * 100);
       return {
         id: rule.id,
-        name: rule.item_name,
+        name: rule.name,
         stockPercent: Math.min(percent, 100),
-        label: `${rule.current_stock} remaining · ${rule.properties?.name ?? "Unit"}`,
+        label: `${rule.quantity} remaining · ${rule.properties?.name ?? "Unit"}`,
       };
     })
     .sort((a, b) => a.stockPercent - b.stockPercent)
     .slice(0, 4);
 
-  const primaryProperty = properties[0];
+
+  const showIcalNudge =
+    !hasIcal &&
+    !profile?.ical_nudge_dismissed_at &&
+    profile?.onboarding_completed !== false;
 
   const bentoData: HomeBentoData = {
     hostName: firstName,
+    shortCode: profile?.short_code ?? null,
     circleMembers: circleDisplay,
     netRevenue,
     quarterRevenue,
@@ -73,14 +80,17 @@ export default async function HomePage() {
     revenueTrend: buildRevenueTrendFromBookings(bookings),
     revenueChangePercent: revenueChangePercent(bookings),
     inventoryAlerts,
-    latestCleanerJob: primaryProperty
+    latestCleanerJob: activeTask
       ? {
-          id: "mock-1",
-          propertyName: primaryProperty.name,
-          completedAt: "Today · 11:42 AM · Turnover complete",
-          verified: true,
+          id: activeTask.id,
+          propertyName: activeTask.properties?.name ?? "Unit",
+          completedAt: activeTask.due_at
+            ? `Due ${new Date(activeTask.due_at).toLocaleString("en-KE")}`
+            : activeTask.status.replace("_", " "),
+          verified: activeTask.status === "completed",
         }
       : null,
+    showIcalNudge,
   };
 
   return <HomeBentoDashboard data={bentoData} />;

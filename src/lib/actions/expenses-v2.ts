@@ -86,6 +86,53 @@ export async function createExpense(formData: FormData) {
   return { success: true };
 }
 
+export type SplitExpenseLine = {
+  propertyId: string;
+  amountKes: number;
+};
+
+export async function createSplitExpenses(payload: {
+  totalAmount: number;
+  lines: SplitExpenseLine[];
+  category: string;
+  date: string;
+  vendorName?: string | null;
+  receiptUrl?: string | null;
+  mpesaReference?: string | null;
+}) {
+  const { totalAmount, lines, category, date, vendorName, receiptUrl, mpesaReference } =
+    payload;
+
+  if (!lines.length) return { error: "Allocate to at least one unit." };
+  if (!category || !date) return { error: "Category and date are required." };
+
+  const allocated = lines.reduce((sum, line) => sum + line.amountKes, 0);
+  if (Math.abs(allocated - totalAmount) > 0.01) {
+    return {
+      error: `Split total (KES ${allocated.toLocaleString()}) must equal receipt total (KES ${totalAmount.toLocaleString()}).`,
+    };
+  }
+
+  for (const line of lines) {
+    if (line.amountKes <= 0) continue;
+    const formData = new FormData();
+    formData.set("property_id", line.propertyId);
+    formData.set("amount_kes", String(line.amountKes));
+    formData.set("category", category);
+    formData.set("date", date);
+    if (vendorName) formData.set("vendor_name", vendorName);
+    if (receiptUrl) formData.set("receipt_url", receiptUrl);
+    if (mpesaReference && lines.filter((l) => l.amountKes > 0).length === 1) {
+      formData.set("mpesa_reference_code", mpesaReference);
+    }
+
+    const result = await createExpense(formData);
+    if (result.error) return result;
+  }
+
+  return { success: true, count: lines.filter((l) => l.amountKes > 0).length };
+}
+
 export type ExpenseWithProperty = Expense & {
   properties: { name: string } | null;
   vendor_name?: string | null;

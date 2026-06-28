@@ -1,12 +1,25 @@
+import Link from "next/link";
 import { CirclesHeroTile } from "@/components/home/tiles/circles-hero-tile";
 import { FinancialTile } from "@/components/home/tiles/financial-tile";
 import { InventoryAlertsTile } from "@/components/home/tiles/inventory-alerts-tile";
 import { IcalInactiveNudge } from "@/components/home/tiles/ical-inactive-nudge";
+import { CleanerActivityTile } from "@/components/home/tiles/cleaner-activity-tile";
+import { HomeQuickActions } from "@/components/home/home-quick-actions";
 import type { CircleMemberDisplay } from "@/components/home/tiles/circles-hero-tile";
 import type { RevenuePoint } from "@/components/home/tiles/financial-tile";
 import type { InventoryAlert } from "@/components/home/tiles/inventory-alerts-tile";
+import type { CleanerJob } from "@/components/home/tiles/cleaner-activity-tile";
 import { PanelTile } from "@/components/ui/glass-tile";
-import { sectionLabelClass } from "@/lib/design/tokens";
+import { Badge } from "@/components/ui/badge";
+import { sectionLabelClass, listRowClass } from "@/lib/design/tokens";
+
+export type UpcomingStay = {
+  id: string;
+  unitName: string;
+  startDate: string;
+  endDate: string;
+  isBlock: boolean;
+};
 
 export type HomeBentoData = {
   hostName: string;
@@ -18,6 +31,8 @@ export type HomeBentoData = {
   revenueTrend: RevenuePoint[];
   revenueChangePercent: number;
   inventoryAlerts: InventoryAlert[];
+  upcomingStays: UpcomingStay[];
+  pendingOpsJob: CleanerJob | null;
   showIcalNudge: boolean;
 };
 
@@ -33,31 +48,68 @@ export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
 
       {data.showIcalNudge && <IcalInactiveNudge />}
 
-      {/* Hero metric pair — Apple Fitness style 2-col grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <PanelTile className="flex min-h-[168px] flex-col">
-          <CirclesHeroTile
-            members={data.circleMembers}
-            compact
-            shortCode={data.shortCode}
-          />
-        </PanelTile>
-        <PanelTile className="min-h-[168px] p-0">
-          <FinancialTile
-            compact
-            netRevenue={data.netRevenue}
-            quarterRevenue={data.quarterRevenue}
-            yearRevenue={data.yearRevenue}
-            trend={data.revenueTrend}
-            changePercent={data.revenueChangePercent}
-          />
-        </PanelTile>
-      </div>
+      <PanelTile className="p-4">
+        <CirclesHeroTile members={data.circleMembers} shortCode={data.shortCode} />
+      </PanelTile>
 
-      {/* Full-width operational stack — portfolio alerts only */}
-      <div className="space-y-3">
-        <InventoryAlertsTile items={data.inventoryAlerts} fullWidth />
-      </div>
+      <PanelTile className="min-h-[180px] p-0">
+        <FinancialTile
+          netRevenue={data.netRevenue}
+          quarterRevenue={data.quarterRevenue}
+          yearRevenue={data.yearRevenue}
+          trend={data.revenueTrend}
+          changePercent={data.revenueChangePercent}
+        />
+      </PanelTile>
+
+      <HomeQuickActions />
+
+      {data.pendingOpsJob && (
+        <CleanerActivityTile job={data.pendingOpsJob} fullWidth />
+      )}
+
+      <InventoryAlertsTile items={data.inventoryAlerts} fullWidth />
+
+      <PanelTile>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Upcoming stays
+        </p>
+        {data.upcomingStays.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No upcoming bookings in the next few weeks.</p>
+        ) : (
+          <ul className="space-y-2">
+            {data.upcomingStays.map((stay) => (
+              <li key={stay.id} className={listRowClass}>
+                <div className="flex flex-1 items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium">{stay.unitName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(stay.startDate).toLocaleDateString("en-KE", {
+                        month: "short",
+                        day: "numeric",
+                      })}{" "}
+                      –{" "}
+                      {new Date(stay.endDate).toLocaleDateString("en-KE", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <Badge variant={stay.isBlock ? "secondary" : "default"}>
+                    {stay.isBlock ? "Blocked" : "Booking"}
+                  </Badge>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link
+          href="/calendar"
+          className="mt-3 inline-block text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          View calendar
+        </Link>
+      </PanelTile>
     </div>
   );
 }

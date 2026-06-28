@@ -11,7 +11,7 @@ import { AddUnitDialog } from "@/components/units/add-unit-dialog";
 import { BlockDatesDialog } from "@/components/units/block-dates-dialog";
 import { GenerateInvoiceButton } from "@/components/bookings/generate-invoice-button";
 import { FinalizeBookingButton } from "@/components/bookings/finalize-booking-button";
-import { AirbnbIcalSyncSequence } from "@/components/ical/airbnb-ical-sync-sequence";
+import { PlatformIcalSync } from "@/components/ical/platform-ical-sync";
 import { IcalExportPanel } from "@/components/ical/ical-export-panel";
 import { Badge } from "@/components/ui/badge";
 
@@ -39,6 +39,7 @@ export function CalendarClient({
   etimsOptIn = false,
 }: CalendarClientProps) {
   const { isAllUnits, selectedProperty, selectedUnitId } = useUnitContext();
+  const [blockOpen, setBlockOpen] = useState(false);
   const [syncTimes, setSyncTimes] = useState<Record<string, string | null>>(
     Object.fromEntries(units.map((u) => [u.id, u.last_synced_at]))
   );
@@ -48,21 +49,17 @@ export function CalendarClient({
     return selectedProperty ?? units[0] ?? null;
   }, [isAllUnits, selectedProperty, units]);
 
-  useEffect(() => {
-    if (!isAllUnits && selectedUnitId !== "all") {
-      // header selector drives calendar scope
-    }
-  }, [isAllUnits, selectedUnitId]);
+  const defaultPropertyId =
+    !isAllUnits && selectedUnitId !== "all" ? selectedUnitId : selected?.id;
 
-  const scopedBookings = useMemo(() => {
-    if (isAllUnits) return bookings;
-    return bookings.filter((b) => b.property_id === selectedUnitId);
-  }, [bookings, isAllUnits, selectedUnitId]);
+  useEffect(() => {
+    // keep block dialog unit in sync when header selection changes
+  }, [defaultPropertyId]);
 
   const unitBookings = useMemo(() => {
     if (isAllUnits) return [];
-    return scopedBookings.filter((b) => b.property_id === selected?.id);
-  }, [scopedBookings, isAllUnits, selected?.id]);
+    return bookings.filter((b) => b.property_id === selected?.id);
+  }, [bookings, isAllUnits, selected?.id]);
 
   const agendaGroups = useMemo(() => {
     if (!isAllUnits) return [];
@@ -87,10 +84,21 @@ export function CalendarClient({
           : `Schedule for ${selected?.name ?? "unit"}`
       }
       actions={
-        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+        units.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <BlockDatesDialog
+              units={units}
+              defaultPropertyId={defaultPropertyId}
+              open={blockOpen}
+              onOpenChange={setBlockOpen}
+              showTrigger
+            />
+            <AddUnitDialog />
+            <CircleSyncButton />
+          </div>
+        ) : (
           <AddUnitDialog />
-          <CircleSyncButton />
-        </div>
+        )
       }
     >
       {units.length === 0 ? (
@@ -149,25 +157,19 @@ export function CalendarClient({
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {selected && (
-                  <>
-                    <SyncButton
-                      propertyId={selected.id}
-                      icalUrl={selected.ical_url}
-                      onSynced={(at) =>
-                        setSyncTimes((prev) => ({ ...prev, [selected.id]: at }))
-                      }
-                    />
-                    <BlockDatesDialog
-                      propertyId={selected.id}
-                      propertyName={selected.name}
-                    />
-                  </>
+                  <SyncButton
+                    propertyId={selected.id}
+                    icalUrl={selected.ical_url}
+                    onSynced={(at) =>
+                      setSyncTimes((prev) => ({ ...prev, [selected.id]: at }))
+                    }
+                  />
                 )}
               </div>
             </div>
             {!selected?.ical_url && (
               <p className="text-xs text-muted-foreground">
-                Connect Airbnb below to import bookings automatically.
+                Connect a calendar below to import bookings automatically.
               </p>
             )}
           </GlassSection>
@@ -175,9 +177,8 @@ export function CalendarClient({
           {selected && (
             <>
               <GlassSection>
-                <AirbnbIcalSyncSequence
+                <PlatformIcalSync
                   propertyId={selected.id}
-                  showSkip={false}
                   onConnected={() => window.location.reload()}
                 />
               </GlassSection>

@@ -91,3 +91,27 @@ export async function createUnit(formData: FormData) {
   revalidatePath("/unit");
   return { success: true };
 }
+
+export async function updatePropertyName(propertyId: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return { error: "Unit name is required." };
+  if (trimmed.length > 48) return { error: "Keep the name under 48 characters." };
+
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const supabase = await createDataClient();
+  const { error } = await supabase
+    .from("properties")
+    .update({ name: trimmed })
+    .eq("id", propertyId)
+    .eq("owner_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/calendar");
+  revalidatePath("/home");
+  revalidatePath("/unit");
+  revalidatePath(`/unit/${propertyId}`);
+  return { success: true };
+}

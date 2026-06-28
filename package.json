@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:simulate": "node scripts/dev-simulate.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -1,4 +1,6 @@
 import { isAuthBypassEnabled } from "@/lib/auth/bypass";
+import { isDevSeedEnabled } from "@/lib/demo/env";
+import { DevSeedControls } from "@/components/layout/dev-seed-controls";
 
 export function DevAuthBanner() {
   if (!isAuthBypassEnabled()) {
@@ -10,6 +12,7 @@ export function DevAuthBanner() {
       Dev mode: auth bypassed. Set{" "}
       <code className="rounded bg-black/10 px-1 dark:bg-white/10">BYPASS_AUTH=false</code>{" "}
       before launch.
+      {isDevSeedEnabled() && <DevSeedControls />}
     </div>
   );
 }

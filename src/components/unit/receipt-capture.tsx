@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { Camera, Upload } from "lucide-react";
-import { createExpense, parseReceiptFromUpload, uploadReceipt } from "@/lib/actions/expenses-v2";
+import { createExpense, parseMpesaStatement, parseReceiptFromUpload, uploadReceipt } from "@/lib/actions/expenses-v2";
 import { consumeReceiptOcrCredit } from "@/lib/actions/receipt-ocr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface ReceiptCaptureProps {
@@ -138,6 +139,24 @@ export function ReceiptCapture({
       {receiptPath && (
         <p className="text-xs text-muted-foreground">Receipt attached</p>
       )}
+
+      <div className="space-y-2">
+        <Label>M-Pesa paste (optional)</Label>
+        <Textarea
+          placeholder="Paste M-Pesa confirmation SMS…"
+          rows={2}
+          className="text-sm"
+          onBlur={(e) => {
+            const text = e.target.value;
+            if (!text.trim()) return;
+            startTransition(async () => {
+              const parsed = await parseMpesaStatement(text);
+              if (parsed.amount) setAmount(String(parsed.amount));
+              if (parsed.vendorHint) setVendor(parsed.vendorHint);
+            });
+          }}
+        />
+      </div>
 
       <div className="space-y-3 rounded-xl border border-border p-4">
         <div className="space-y-2">

@@ -62,7 +62,7 @@ export function CirclesReferralClient({
 
   return (
     <div className={pageShellClass}>
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <p className={sectionLabelClass}>Network</p>
           <h1 className={pageTitleClass}>Circles</h1>
@@ -73,10 +73,10 @@ export function CirclesReferralClient({
         <ManageCircleSheet circles={circles} hostShortCode={hostShortCode} inviteUrl={inviteUrl} />
       </header>
 
-      <div className="mb-6 space-y-4 rounded-xl border border-border p-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <div className="space-y-4 rounded-xl border border-border p-4">
+        <div className="space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="check-in">Check-in</Label>
+            <Label htmlFor="check-in">From</Label>
             <Input
               id="check-in"
               type="date"
@@ -85,7 +85,7 @@ export function CirclesReferralClient({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="check-out">Check-out</Label>
+            <Label htmlFor="check-out">To</Label>
             <Input
               id="check-out"
               type="date"
@@ -97,7 +97,7 @@ export function CirclesReferralClient({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" onClick={handleSearch} disabled={isPending || !checkIn || !checkOut}>
-            {isPending ? "Searching…" : "Search availability"}
+            {isPending ? "Searching…" : "Search"}
           </Button>
           <CircleSyncButton />
         </div>
@@ -116,48 +116,49 @@ export function CirclesReferralClient({
         </div>
       </div>
 
-      <SectionHeader
-        title="Available peers"
-        description={
-          checkIn && checkOut
-            ? `${filtered.length} unit${filtered.length === 1 ? "" : "s"} free for selected dates`
-            : "Pick dates to search your Circle network"
-        }
-      />
-
-      {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No matching units. Try syncing calendars or widening the bedroom filter.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((row) => (
-            <div key={row.property_id} className={listRowClass}>
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium text-foreground">{row.property_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {row.is_own ? "Your unit" : `${row.host_name} · Circle peer`}
-                  </p>
+      <div>
+        <SectionHeader
+          title="Available peers"
+          description={
+            checkIn && checkOut
+              ? `${filtered.length} unit${filtered.length === 1 ? "" : "s"} free for selected dates`
+              : "Pick dates to search your Circle network"
+          }
+        />
+        {filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No matching units. Try syncing calendars or widening the bedroom filter.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((row) => (
+              <div key={row.property_id} className={listRowClass}>
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-foreground">{row.property_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {row.is_own ? "Your unit" : `${row.host_name} · Circle peer`}
+                    </p>
+                  </div>
+                  <Badge variant={row.is_own ? "outline" : "secondary"}>
+                    {row.bedrooms ?? 1} bed{(row.bedrooms ?? 1) === 1 ? "" : "s"}
+                  </Badge>
                 </div>
-                <Badge variant={row.is_own ? "outline" : "secondary"}>
-                  {row.bedrooms ?? 1} bed{(row.bedrooms ?? 1) === 1 ? "" : "s"}
-                </Badge>
+                {!row.is_own && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" size="sm" variant="outline" onClick={() => whatsAppHost(row)}>
+                      WhatsApp host
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => copyReferralNote(row)}>
+                      Copy referral note
+                    </Button>
+                  </div>
+                )}
               </div>
-              {!row.is_own && (
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" size="sm" variant="outline" onClick={() => whatsAppHost(row)}>
-                    WhatsApp host
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={() => copyReferralNote(row)}>
-                    Copy referral note
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

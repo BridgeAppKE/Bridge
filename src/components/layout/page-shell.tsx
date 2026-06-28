@@ -41,7 +41,7 @@ export function PageShell({
         </div>
         {actions && <div className="shrink-0">{actions}</div>}
       </header>
-      {children}
+      <div className="mt-6 space-y-6">{children}</div>
     </div>
   );
 }

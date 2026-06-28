@@ -1,9 +1,10 @@
 import { getInventoryItems } from "@/lib/actions/inventory-v2";
 import { getCircleInvitations } from "@/lib/actions/circles";
-import { getBookingsWithRevenue } from "@/lib/actions/bookings";
+import { getAllVisibleBookings, getBookingsWithRevenue } from "@/lib/actions/bookings";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { getHostProfile } from "@/lib/actions/onboarding";
 import { userHasAnyIcalFeed } from "@/lib/actions/ical-feeds";
+import { getLatestActiveTask } from "@/lib/actions/operations";
 import { HomeScopedDashboard } from "@/components/home/home-scoped-dashboard";
 import type { HomeBentoData } from "@/components/home/home-bento-dashboard";
 import {
@@ -16,11 +17,14 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const profile = await getHostProfile();
 
-  const [inventoryRules, circleMembers, bookings, hasIcal] = await Promise.all([
+  const [inventoryRules, circleMembers, bookings, allBookings, hasIcal, activeTask] =
+    await Promise.all([
       getInventoryItems(),
       getCircleInvitations(),
       getBookingsWithRevenue(),
+      getAllVisibleBookings(),
       userHasAnyIcalFeed(),
+      getLatestActiveTask(),
     ]);
 
   const firstName =
@@ -54,12 +58,37 @@ export default async function HomePage() {
       return {
         id: rule.id,
         name: rule.name,
+        unitName: rule.properties?.name ?? "Unit",
         stockPercent: Math.min(percent, 100),
-        label: `${rule.quantity} remaining · ${rule.properties?.name ?? "Unit"}`,
+        label: `${rule.quantity} left`,
       };
     })
     .sort((a, b) => a.stockPercent - b.stockPercent)
     .slice(0, 4);
+
+  const today = now.toISOString().slice(0, 10);
+  const upcomingStays = allBookings
+    .filter((b) => b.end_date >= today && !b.is_manual_block)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .slice(0, 3)
+    .map((b) => ({
+      id: b.id,
+      unitName: b.properties?.name ?? "Unit",
+      startDate: b.start_date,
+      endDate: b.end_date,
+      isBlock: b.is_manual_block,
+    }));
+
+  const pendingOpsJob = activeTask
+    ? {
+        id: activeTask.id,
+        propertyName: activeTask.properties?.name ?? "Unit",
+        completedAt: activeTask.due_at
+          ? `Due ${new Date(activeTask.due_at).toLocaleString("en-KE")}`
+          : activeTask.status.replace("_", " "),
+        verified: activeTask.status === "completed",
+      }
+    : null;
 
 
   const showIcalNudge =
@@ -77,6 +106,8 @@ export default async function HomePage() {
     revenueTrend: buildRevenueTrendFromBookings(bookings),
     revenueChangePercent: revenueChangePercent(bookings),
     inventoryAlerts,
+    upcomingStays,
+    pendingOpsJob,
     showIcalNudge,
   };
 

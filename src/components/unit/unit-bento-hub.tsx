@@ -8,14 +8,17 @@ import {
   Package,
   Receipt,
   ShieldCheck,
+  ShoppingBag,
 } from "lucide-react";
 import { PanelTile } from "@/components/ui/glass-tile";
+import { RenamePropertyDialog } from "@/components/units/rename-property-dialog";
 import { pageShellClass, pageTitleClass, sectionLabelClass } from "@/lib/design/tokens";
 import { cn } from "@/lib/utils";
 
 interface UnitBentoHubProps {
   propertyId: string;
   propertyName: string;
+  unitCount: number;
   lowStockCount: number;
   spendMtd: number;
   pendingTasks: number;
@@ -61,6 +64,7 @@ function BentoLink({
 export function UnitBentoHub({
   propertyId,
   propertyName,
+  unitCount,
   lowStockCount,
   spendMtd,
   pendingTasks,
@@ -70,10 +74,32 @@ export function UnitBentoHub({
 
   return (
     <div className={pageShellClass}>
-      <header className="mb-6 space-y-1">
-        <p className={sectionLabelClass}>Unit hub</p>
-        <h1 className={pageTitleClass}>{propertyName}</h1>
+      <header className="mb-6 flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <p className={sectionLabelClass}>Unit hub</p>
+          <div className="flex items-center gap-1">
+            <h1 className={cn(pageTitleClass, "truncate")} title={propertyName}>
+              {propertyName}
+            </h1>
+            <RenamePropertyDialog propertyId={propertyId} currentName={propertyName} />
+          </div>
+        </div>
       </header>
+
+      {unitCount >= 2 && (
+        <Link href="/unit/capture" className="tap-scale mb-3 block">
+          <PanelTile className="flex items-center justify-between gap-3 border-primary/30 bg-primary/5 p-4">
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-semibold">Bulk shop</p>
+                <p className="text-xs text-muted-foreground">Split one receipt across units</p>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </PanelTile>
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Link href={`${base}/stock`} className="tap-scale block">

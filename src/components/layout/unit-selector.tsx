@@ -19,14 +19,18 @@ export function UnitSelector() {
       value={selectedUnitId}
       onValueChange={(v) => v && setSelectedUnitId(v as "all" | string)}
     >
-      <SelectTrigger className="h-8 w-[140px] text-xs sm:w-[180px]">
+      <SelectTrigger className="h-8 w-[140px] truncate text-xs sm:w-[180px]" title={
+        selectedUnitId === "all"
+          ? "All Units"
+          : properties.find((p) => p.id === selectedUnitId)?.name
+      }>
         <SelectValue placeholder="All Units" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Units</SelectItem>
         {properties.map((p) => (
-          <SelectItem key={p.id} value={p.id}>
-            {p.name}
+          <SelectItem key={p.id} value={p.id} title={p.name}>
+            <span className="truncate">{p.name}</span>
           </SelectItem>
         ))}
       </SelectContent>

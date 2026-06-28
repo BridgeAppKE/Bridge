@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export type InventoryAlert = {
   id: string;
   name: string;
+  unitName?: string;
   stockPercent: number;
   label: string;
 };
@@ -50,6 +51,9 @@ export function InventoryAlertsTile({ items, fullWidth }: InventoryAlertsTilePro
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">{item.label}</p>
+                {item.unitName && (
+                  <p className="text-xs text-muted-foreground/80">{item.unitName}</p>
+                )}
               </li>
             );
           })}

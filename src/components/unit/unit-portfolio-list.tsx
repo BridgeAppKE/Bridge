@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, Package } from "lucide-react";
 import type { UnitCardSummary } from "@/lib/actions/units";
 import { PanelTile } from "@/components/ui/glass-tile";
+import { RenamePropertyDialog } from "@/components/units/rename-property-dialog";
 import { pageShellClass, pageTitleClass, pageSubtitleClass, sectionLabelClass } from "@/lib/design/tokens";
 import { AddUnitDialog } from "@/components/units/add-unit-dialog";
 
@@ -32,26 +33,35 @@ export function UnitPortfolioList({ units }: UnitPortfolioListProps) {
       ) : (
         <div className="space-y-3">
           {units.map((unit) => (
-            <Link key={unit.id} href={`/unit/${unit.id}`} className="tap-scale block">
-              <PanelTile className="flex items-center justify-between gap-3 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Package className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">{unit.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {unit.lowStockCount > 0
-                        ? `${unit.lowStockCount} low stock`
-                        : "Stock OK"}
-                      {" · "}
-                      KES {unit.spendMtd.toLocaleString()} spent this month
-                    </p>
-                  </div>
+            <PanelTile key={unit.id} className="flex items-center justify-between gap-3 p-4">
+              <Link href={`/unit/${unit.id}`} className="tap-scale flex min-w-0 flex-1 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Package className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-              </PanelTile>
-            </Link>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-foreground" title={unit.name}>
+                    {unit.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {unit.lowStockCount > 0
+                      ? `${unit.lowStockCount} low stock`
+                      : "Stock OK"}
+                    {" · "}
+                    KES {unit.spendMtd.toLocaleString()} spent this month
+                  </p>
+                </div>
+              </Link>
+              <div className="flex shrink-0 items-center gap-1">
+                <RenamePropertyDialog
+                  propertyId={unit.id}
+                  currentName={unit.name}
+                  trigger="text"
+                />
+                <Link href={`/unit/${unit.id}`} className="p-1 text-muted-foreground">
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              </div>
+            </PanelTile>
           ))}
         </div>
       )}

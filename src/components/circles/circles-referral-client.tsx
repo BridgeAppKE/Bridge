@@ -8,16 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ManageCircleSheet } from "@/components/circles/manage-circle-sheet";
-import type { PeerAvailabilityRow } from "@/lib/actions/circles";
-import type { CircleGroup } from "@/lib/actions/circles";
+import { respondToCircleInvite, setUnitCircleVisibility } from "@/lib/actions/circles";
+import type { PeerAvailabilityRow, CircleInvitationRow, CircleGroup } from "@/lib/actions/circles";
+import type { Property } from "@/lib/types/database";
 import { todayIsoDate } from "@/lib/inventory/consumption";
 import { pageShellClass, pageTitleClass, pageSubtitleClass, sectionLabelClass } from "@/lib/design/tokens";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface CirclesReferralClientProps {
   initialResults: PeerAvailabilityRow[];
   circles: CircleGroup[];
   hostShortCode: string | null;
   inviteUrl: string | null;
+  invitations: CircleInvitationRow[];
+  units: Property[];
 }
 
 export function CirclesReferralClient({
@@ -25,7 +30,38 @@ export function CirclesReferralClient({
   circles,
   hostShortCode,
   inviteUrl,
+  invitations,
+  units,
 }: CirclesReferralClientProps) {
+  const router = useRouter();
+  const pendingIncoming = invitations.filter(
+    (i) => i.status === "pending" && i.direction === "incoming"
+  );
+  const [, startRespondTransition] = useTransition();
+
+  function respond(id: string, action: "accepted" | "rejected") {
+    startRespondTransition(async () => {
+      const result = await respondToCircleInvite(id, action);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success(action === "accepted" ? "Invite accepted" : "Invite declined");
+        router.refresh();
+      }
+    });
+  }
+
+  const [, startVisibilityTransition] = useTransition();
+
+  function toggleVisibility(propertyId: string, next: boolean) {
+    startVisibilityTransition(async () => {
+      const result = await setUnitCircleVisibility(propertyId, next);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success(next ? "Visible to circle" : "Hidden from circle");
+        router.refresh();
+      }
+    });
+  }
   const today = todayIsoDate();
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(() => {
@@ -78,6 +114,62 @@ export function CirclesReferralClient({
         </div>
         <ManageCircleSheet circles={circles} hostShortCode={hostShortCode} inviteUrl={inviteUrl} />
       </header>
+
+      {pendingIncoming.length > 0 && (
+        <div className="space-y-3 rounded-xl border border-border p-4">
+          <SectionHeader title="Pending invites" description="Hosts who want to join your circle" />
+          <div className="space-y-2">
+            {pendingIncoming.map((inv) => (
+              <div key={inv.id} className={listRowClass}>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="font-medium text-foreground">{inv.peer.full_name ?? "Host"}</p>
+                  <Badge variant="secondary">{inv.circle_name}</Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" onClick={() => respond(inv.id, "accepted")}>
+                    Accept
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => respond(inv.id, "rejected")}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {units.length > 0 && (
+        <div className="space-y-3 rounded-xl border border-border p-4">
+          <SectionHeader
+            title="Unit visibility"
+            description="Hidden units never appear in circle availability searches"
+          />
+          <div className="space-y-2">
+            {units.map((u) => {
+              const visible = (u as Property & { visible_to_circle?: boolean }).visible_to_circle !== false;
+              return (
+                <div key={u.id} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
+                  <span className="text-sm font-medium text-foreground">{u.name}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={visible ? "default" : "outline"}
+                    onClick={() => toggleVisibility(u.id, !visible)}
+                  >
+                    {visible ? "Visible to circle" : "Hidden"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4 rounded-xl border border-border p-4">
         <div className="space-y-3">

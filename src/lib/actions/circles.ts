@@ -314,14 +314,21 @@ export async function searchPeerAvailability(
 
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, name, owner_id, bedrooms, location, base_rate_kes")
+    .select("id, name, owner_id, bedrooms, location, base_rate_kes, visible_to_circle")
     .in("owner_id", Array.from(visibleOwnerIds))
     .order("name");
 
   if (error) throw new Error(error.message);
   if (!properties?.length) return [];
 
-  const ownerIds = Array.from(new Set(properties.map((p) => p.owner_id)));
+  const visibleProperties = properties.filter(
+    (p) =>
+      p.owner_id === user.id ||
+      (p as { visible_to_circle?: boolean }).visible_to_circle !== false
+  );
+  if (!visibleProperties.length) return [];
+
+  const ownerIds = Array.from(new Set(visibleProperties.map((p) => p.owner_id)));
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, full_name, legal_name")
@@ -331,13 +338,13 @@ export async function searchPeerAvailability(
     profiles?.map((p) => [p.id, p.legal_name ?? p.full_name ?? "Host"]) ?? []
   );
 
-  const propertyIds = properties.map((p) => p.id);
+  const propertyIds = visibleProperties.map((p) => p.id);
   const { data: bookings } = await supabase
     .from("bookings")
     .select("property_id, start_date, end_date, is_manual_block")
     .in("property_id", propertyIds);
 
-  return properties.map((property) => {
+  return visibleProperties.map((property) => {
     const propertyBookings = (bookings ?? []).filter(
       (b) => b.property_id === property.id
     );
@@ -461,6 +468,23 @@ export async function getAvailabilityList(circleId?: string): Promise<Availabili
       mock_availability: availabilityLabels,
     };
   });
+}
+
+export async function setUnitCircleVisibility(propertyId: string, visible: boolean) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const supabase = await createDataClient();
+  const { error } = await supabase
+    .from("properties")
+    .update({ visible_to_circle: visible })
+    .eq("id", propertyId)
+    .eq("owner_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/circles");
+  revalidatePath("/unit");
+  return { success: true };
 }
 
 export async function createCircle(name: string) {

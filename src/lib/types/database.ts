@@ -40,6 +40,7 @@ export interface Database {
           zodomus_property_id: string | null;
           ical_url: string | null;
           last_synced_at: string | null;
+          visible_to_circle: boolean;
           created_at: string;
         };
         Insert: {
@@ -49,6 +50,7 @@ export interface Database {
           zodomus_property_id?: string | null;
           ical_url?: string | null;
           last_synced_at?: string | null;
+          visible_to_circle?: boolean;
           created_at?: string;
         };
         Update: {
@@ -58,6 +60,7 @@ export interface Database {
           zodomus_property_id?: string | null;
           ical_url?: string | null;
           last_synced_at?: string | null;
+          visible_to_circle?: boolean;
           created_at?: string;
         };
       };

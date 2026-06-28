@@ -2,15 +2,19 @@ import {
   getMyCircles,
   searchPeerAvailability,
   getCircleInviteUrl,
+  getCircleInvitations,
 } from "@/lib/actions/circles";
 import { getHostProfile } from "@/lib/actions/onboarding";
+import { getUserProperties } from "@/lib/actions/properties";
 import { CirclesReferralClient } from "@/components/circles/circles-referral-client";
 
 export default async function CirclesPage() {
-  const [circles, profile, inviteUrl] = await Promise.all([
+  const [circles, profile, inviteUrl, invitations, units] = await Promise.all([
     getMyCircles(),
     getHostProfile(),
     getCircleInviteUrl(),
+    getCircleInvitations(),
+    getUserProperties(),
   ]);
 
   const today = new Date();
@@ -27,6 +31,8 @@ export default async function CirclesPage() {
       circles={circles}
       hostShortCode={profile?.short_code ?? null}
       inviteUrl={inviteUrl}
+      invitations={invitations}
+      units={units}
     />
   );
 }

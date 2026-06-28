@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, Camera, Receipt } from "lucide-react";
+import { CalendarDays, Receipt, ShoppingBag } from "lucide-react";
 
 export function HomeQuickActions() {
   const linkClass =
@@ -10,12 +10,12 @@ export function HomeQuickActions() {
   return (
     <div className="flex flex-wrap gap-2">
       <Link href="/unit/capture" className={linkClass}>
-        <Receipt className="h-3.5 w-3.5" />
+        <ShoppingBag className="h-3.5 w-3.5" />
         Bulk shop
       </Link>
       <Link href="/unit" className={linkClass}>
-        <Camera className="h-3.5 w-3.5" />
-        Log spend
+        <Receipt className="h-3.5 w-3.5" />
+        Unit spend
       </Link>
       <Link href="/calendar" className={linkClass}>
         <CalendarDays className="h-3.5 w-3.5" />

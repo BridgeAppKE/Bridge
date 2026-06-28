@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
-import { updatePropertyName } from "@/lib/actions/properties";
+import { updatePropertyDetails } from "@/lib/actions/properties";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,28 +16,42 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-interface RenamePropertyDialogProps {
+interface EditUnitDialogProps {
   propertyId: string;
   currentName: string;
+  currentBaseRateKes: number;
   trigger?: "icon" | "text";
 }
 
-export function RenamePropertyDialog({
+export function EditUnitDialog({
   propertyId,
   currentName,
+  currentBaseRateKes,
   trigger = "icon",
-}: RenamePropertyDialogProps) {
+}: EditUnitDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(currentName);
+  const [baseRate, setBaseRate] = useState(String(currentBaseRateKes || 8500));
   const [isPending, startTransition] = useTransition();
+
+  function openDialog() {
+    setName(currentName);
+    setBaseRate(String(currentBaseRateKes || 8500));
+    setOpen(true);
+  }
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updatePropertyName(propertyId, name);
+      const result = await updatePropertyDetails(propertyId, {
+        name,
+        baseRateKes: parseFloat(baseRate),
+      });
       if (result.error) toast.error(result.error);
       else {
-        toast.success("Unit renamed");
+        toast.success("Unit updated");
         setOpen(false);
+        router.refresh();
       }
     });
   }
@@ -46,36 +61,23 @@ export function RenamePropertyDialog({
       {trigger === "icon" ? (
         <button
           type="button"
-          onClick={() => {
-            setName(currentName);
-            setOpen(true);
-          }}
+          onClick={openDialog}
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Rename unit"
+          aria-label="Edit unit"
         >
           <Pencil className="h-4 w-4" />
         </button>
       ) : (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setName(currentName);
-            setOpen(true);
-          }}
-        >
-          Rename
+        <Button type="button" variant="ghost" size="sm" onClick={openDialog}>
+          Edit
         </Button>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Rename unit</DialogTitle>
-            <DialogDescription>
-              Short names work best in the header and alerts.
-            </DialogDescription>
+            <DialogTitle>Edit unit</DialogTitle>
+            <DialogDescription>Name and nightly rate used for revenue estimates.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
@@ -88,13 +90,25 @@ export function RenamePropertyDialog({
                 autoFocus
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="unit-rate">Nightly rate (KES)</Label>
+              <Input
+                id="unit-rate"
+                type="number"
+                inputMode="decimal"
+                min={1}
+                value={baseRate}
+                onChange={(e) => setBaseRate(e.target.value)}
+                placeholder="8500"
+              />
+            </div>
             <Button
               type="button"
               className="w-full"
               disabled={isPending || !name.trim()}
               onClick={handleSave}
             >
-              {isPending ? "Saving…" : "Save name"}
+              {isPending ? "Saving…" : "Save"}
             </Button>
           </div>
         </DialogContent>
@@ -102,3 +116,6 @@ export function RenamePropertyDialog({
     </>
   );
 }
+
+/** @deprecated use EditUnitDialog */
+export const RenamePropertyDialog = EditUnitDialog;

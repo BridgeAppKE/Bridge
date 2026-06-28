@@ -66,6 +66,7 @@ export async function upsertBookingsFromSync(
 
   revalidatePath("/calendar");
   revalidatePath("/home");
+  revalidatePath("/circles");
   return { success: true, count };
 }
 
@@ -200,7 +201,7 @@ export async function getBookingsWithRevenue() {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, start_date, end_date, guest_count, is_manual_block, properties(name)")
+    .select("id, start_date, end_date, guest_count, is_manual_block, properties(name, base_rate_kes)")
     .eq("is_manual_block", false)
     .order("start_date", { ascending: false });
 

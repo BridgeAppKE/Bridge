@@ -19,6 +19,7 @@ export default async function UnitHubPage({
     <UnitBentoHub
       propertyId={data.property.id}
       propertyName={data.property.name}
+      baseRateKes={Number((data.property as { base_rate_kes?: number }).base_rate_kes ?? 8500)}
       unitCount={summaries.length}
       lowStockCount={data.lowStockCount}
       spendMtd={data.spendMtd}

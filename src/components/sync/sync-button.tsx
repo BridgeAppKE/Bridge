@@ -50,18 +50,19 @@ export function SyncButton({
   }
 
   return (
-    <div className={cn("flex flex-col items-end gap-1", className)}>
+    <div className={cn("inline-flex flex-wrap items-center justify-end gap-2", className)}>
       <Button
         type="button"
         size="sm"
+        variant="outline"
         onClick={handleClick}
         disabled={isPending}
-        className="tap-scale gap-2"
+        className="tap-scale gap-1.5"
       >
         <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
         {isPending ? "Syncing…" : label}
       </Button>
-      {error && <p className="max-w-[200px] text-right text-xs text-destructive">{error}</p>}
+      {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   );
 }

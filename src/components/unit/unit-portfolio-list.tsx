@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight, Package } from "lucide-react";
 import type { UnitCardSummary } from "@/lib/actions/units";
 import { PanelTile } from "@/components/ui/glass-tile";
-import { RenamePropertyDialog } from "@/components/units/rename-property-dialog";
+import { EditUnitDialog } from "@/components/units/rename-property-dialog";
 import { pageShellClass, pageTitleClass, pageSubtitleClass, sectionLabelClass } from "@/lib/design/tokens";
 import { AddUnitDialog } from "@/components/units/add-unit-dialog";
 
@@ -52,9 +52,10 @@ export function UnitPortfolioList({ units }: UnitPortfolioListProps) {
                 </div>
               </Link>
               <div className="flex shrink-0 items-center gap-1">
-                <RenamePropertyDialog
+                <EditUnitDialog
                   propertyId={unit.id}
                   currentName={unit.name}
+                  currentBaseRateKes={unit.baseRateKes}
                   trigger="text"
                 />
                 <Link href={`/unit/${unit.id}`} className="p-1 text-muted-foreground">

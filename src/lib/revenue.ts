@@ -1,11 +1,22 @@
-const NIGHTLY_RATE_KES = 8500;
+const DEFAULT_NIGHTLY_RATE_KES = 8500;
 
 type BookingLike = {
   start_date: string;
   end_date: string;
   guest_count: number | null;
   is_manual_block: boolean;
+  properties?:
+    | { base_rate_kes?: number | null }
+    | { base_rate_kes?: number | null }[]
+    | null;
 };
+
+function nightlyRate(booking: BookingLike): number {
+  const props = Array.isArray(booking.properties)
+    ? booking.properties[0]
+    : booking.properties;
+  return Number(props?.base_rate_kes ?? DEFAULT_NIGHTLY_RATE_KES);
+}
 
 export function bookingRevenue(booking: BookingLike): number {
   if (booking.is_manual_block) return 0;
@@ -16,7 +27,7 @@ export function bookingRevenue(booking: BookingLike): number {
         (1000 * 60 * 60 * 24)
     )
   );
-  return nights * NIGHTLY_RATE_KES * Math.max(booking.guest_count ?? 2, 1);
+  return nights * nightlyRate(booking);
 }
 
 export function sumRevenueInRange(

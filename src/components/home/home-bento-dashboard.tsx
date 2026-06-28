@@ -30,6 +30,7 @@ export type HomeBentoData = {
   yearRevenue: number;
   revenueTrend: RevenuePoint[];
   revenueChangePercent: number;
+  spendMtd: number;
   inventoryAlerts: InventoryAlert[];
   upcomingStays: UpcomingStay[];
   pendingOpsJob: CleanerJob | null;
@@ -60,6 +61,26 @@ export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
           trend={data.revenueTrend}
           changePercent={data.revenueChangePercent}
         />
+      </PanelTile>
+
+      <PanelTile className="flex items-center justify-between p-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Spend this month
+          </p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            KES {data.spendMtd.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Net est. KES {(data.netRevenue - data.spendMtd).toLocaleString()}
+          </p>
+        </div>
+        <Link
+          href="/unit/capture"
+          className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          Log spend
+        </Link>
       </PanelTile>
 
       <HomeQuickActions />

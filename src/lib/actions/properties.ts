@@ -92,10 +92,16 @@ export async function createUnit(formData: FormData) {
   return { success: true };
 }
 
-export async function updatePropertyName(propertyId: string, name: string) {
-  const trimmed = name.trim();
+export async function updatePropertyDetails(
+  propertyId: string,
+  details: { name: string; baseRateKes: number }
+) {
+  const trimmed = details.name.trim();
   if (!trimmed) return { error: "Unit name is required." };
   if (trimmed.length > 48) return { error: "Keep the name under 48 characters." };
+  if (isNaN(details.baseRateKes) || details.baseRateKes <= 0) {
+    return { error: "Enter a valid nightly rate." };
+  }
 
   const user = await getSessionUser();
   if (!user) return { error: "Not authenticated" };
@@ -103,7 +109,10 @@ export async function updatePropertyName(propertyId: string, name: string) {
   const supabase = await createDataClient();
   const { error } = await supabase
     .from("properties")
-    .update({ name: trimmed })
+    .update({
+      name: trimmed,
+      base_rate_kes: details.baseRateKes,
+    })
     .eq("id", propertyId)
     .eq("owner_id", user.id);
 
@@ -114,4 +123,11 @@ export async function updatePropertyName(propertyId: string, name: string) {
   revalidatePath("/unit");
   revalidatePath(`/unit/${propertyId}`);
   return { success: true };
+}
+
+/** @deprecated use updatePropertyDetails */
+export async function updatePropertyName(propertyId: string, name: string) {
+  const property = await getPropertyForOwner(propertyId);
+  const rate = Number((property as { base_rate_kes?: number } | null)?.base_rate_kes ?? 8500);
+  return updatePropertyDetails(propertyId, { name, baseRateKes: rate });
 }

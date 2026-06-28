@@ -9,6 +9,7 @@ import { getOperationalTasks } from "@/lib/actions/operations";
 export type UnitCardSummary = {
   id: string;
   name: string;
+  baseRateKes: number;
   lowStockCount: number;
   spendMtd: number;
   pendingTasks: number;
@@ -21,7 +22,7 @@ export async function getUnitSummaries(): Promise<UnitCardSummary[]> {
   const supabase = await createDataClient();
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, name")
+    .select("id, name, base_rate_kes")
     .eq("owner_id", user.id)
     .order("name");
 
@@ -55,6 +56,7 @@ export async function getUnitSummaries(): Promise<UnitCardSummary[]> {
     return {
       id: property.id,
       name: property.name,
+      baseRateKes: Number((property as { base_rate_kes?: number }).base_rate_kes ?? 8500),
       lowStockCount,
       spendMtd,
       pendingTasks,
@@ -69,7 +71,7 @@ export async function getUnitHubData(propertyId: string) {
   const supabase = await createDataClient();
   const { data: property } = await supabase
     .from("properties")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, base_rate_kes")
     .eq("id", propertyId)
     .eq("owner_id", user.id)
     .maybeSingle();

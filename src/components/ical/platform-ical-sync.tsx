@@ -13,30 +13,19 @@ import { cn } from "@/lib/utils";
 
 const PLATFORMS = ["Airbnb", "Booking.com", "Other"] as const;
 
-const STEPS: Record<(typeof PLATFORMS)[number], { title: string; body: string }[]> = {
-  Airbnb: [
-    { title: "Open Airbnb Calendar", body: "Hosting → Calendar → Availability settings → Export calendar." },
-    { title: "Copy export link", body: "Link starts with https://ical.airbnb.com/..." },
-    { title: "Paste below", body: "Connect to import bookings into EliteHost." },
-  ],
-  "Booking.com": [
-    { title: "Open Booking.com Extranet", body: "Rates & Availability → Sync calendars." },
-    { title: "Export calendar", body: "Copy the .ics export URL (may start with webcal://)." },
-    { title: "Paste below", body: "Connect to import Booking.com reservations." },
-  ],
-  Other: [
-    { title: "Find export URL", body: "From your channel manager or OTA calendar sync settings." },
-    { title: "Paste .ics link", body: "Any HTTPS or webcal calendar feed URL." },
-  ],
-};
-
 interface PlatformIcalSyncProps {
   propertyId: string;
   onConnected?: () => void;
   className?: string;
+  compact?: boolean;
 }
 
-export function PlatformIcalSync({ propertyId, onConnected, className }: PlatformIcalSyncProps) {
+export function PlatformIcalSync({
+  propertyId,
+  onConnected,
+  className,
+  compact = false,
+}: PlatformIcalSyncProps) {
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]>("Airbnb");
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +49,7 @@ export function PlatformIcalSync({ propertyId, onConnected, className }: Platfor
         setSuccess(
           result.syncWarning
             ? `Connected. ${result.syncWarning}`
-            : `Calendar connected${result.imported != null ? ` · ${result.imported} events` : ""}.`
+            : `Connected${result.imported != null ? ` · ${result.imported} events` : ""}.`
         );
         onConnected?.();
       }
@@ -72,13 +61,12 @@ export function PlatformIcalSync({ propertyId, onConnected, className }: Platfor
   );
 
   return (
-    <div className={cn("space-y-5", className)}>
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Connect calendar</h2>
+    <div className={cn("space-y-4", className)}>
+      {!compact && (
         <p className="text-sm text-muted-foreground">
           Import bookings from Airbnb, Booking.com, or another channel.
         </p>
-      </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {PLATFORMS.map((p) => (
@@ -94,20 +82,6 @@ export function PlatformIcalSync({ propertyId, onConnected, className }: Platfor
         ))}
       </div>
 
-      <ol className="space-y-4">
-        {STEPS[platform].map((step, index) => (
-          <li key={step.title} className="flex gap-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {index + 1}
-            </span>
-            <div>
-              <p className="font-medium text-foreground">{step.title}</p>
-              <p className="text-sm text-muted-foreground">{step.body}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-
       <div className="space-y-2">
         <Input
           value={url}
@@ -115,7 +89,7 @@ export function PlatformIcalSync({ propertyId, onConnected, className }: Platfor
           placeholder={
             platform === "Airbnb"
               ? `${AIRBNB_ICAL_PREFIX}v1/export/private/...`
-              : "https://admin.booking.com/... or webcal://..."
+              : "Paste .ics export URL…"
           }
           className="font-mono text-sm"
           disabled={isPending}
@@ -123,20 +97,17 @@ export function PlatformIcalSync({ propertyId, onConnected, className }: Platfor
         {error && <p className="text-sm text-destructive">{error}</p>}
         {success && <p className="text-sm text-muted-foreground">{success}</p>}
         <Button type="button" onClick={handleConnect} disabled={isPending} className="w-full">
-          {isPending ? "Connecting…" : "Connect calendar"}
+          {isPending ? "Connecting…" : "Connect"}
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Receipt scanning is separate — use Unit → Capture to log spend from shopping trips.
-      </p>
-
-      <p className="text-center text-xs text-muted-foreground">
-        Stuck?{" "}
-        <a href={waHelp} target="_blank" rel="noopener noreferrer" className="text-foreground underline underline-offset-4">
-          WhatsApp support
-        </a>
-      </p>
+      {!compact && (
+        <p className="text-center text-xs text-muted-foreground">
+          <a href={waHelp} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+            Need help finding the link?
+          </a>
+        </p>
+      )}
     </div>
   );
 }

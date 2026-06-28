@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { blockDates } from "@/lib/actions/bookings";
 import type { Property } from "@/lib/types/database";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarOff } from "lucide-react";
+import { toast } from "sonner";
 
 interface BlockDatesDialogProps {
   units: Property[];
@@ -28,42 +30,51 @@ interface BlockDatesDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   showTrigger?: boolean;
+  onBlocked?: () => void;
 }
 
 export function BlockDatesDialog({
   units,
-  defaultPropertyId,
   open: controlledOpen,
   onOpenChange,
   showTrigger = true,
+  onBlocked,
 }: BlockDatesDialogProps) {
+  const router = useRouter();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
 
-  const [propertyId, setPropertyId] = useState(defaultPropertyId ?? units[0]?.id ?? "");
+  const [propertyId, setPropertyId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (defaultPropertyId) setPropertyId(defaultPropertyId);
-  }, [defaultPropertyId]);
+  function resetForm() {
+    setPropertyId("");
+    setError(null);
+  }
 
-  const selectedUnit = units.find((u) => u.id === propertyId);
+  function handleOpenChange(next: boolean) {
+    if (next) resetForm();
+    setOpen(next);
+  }
 
   function handleSubmit(formData: FormData) {
     if (!propertyId) {
-      setError("Select a unit.");
+      setError("Choose a unit first.");
       return;
     }
     formData.set("property_id", propertyId);
     setError(null);
     startTransition(async () => {
       const result = await blockDates(formData);
-      if (result.error) setError(result.error);
-      else {
+      if (result.error) {
+        setError(result.error);
+      } else {
         setOpen(false);
-        window.location.reload();
+        toast.success("Dates blocked — Circle peers see this now. OTAs update on their next fetch.");
+        onBlocked?.();
+        router.refresh();
       }
     });
   }
@@ -75,42 +86,37 @@ export function BlockDatesDialog({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setOpen(true)}
+          onClick={() => handleOpenChange(true)}
           className="tap-scale gap-1.5"
         >
           <CalendarOff className="h-4 w-4" />
           Block
         </Button>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Block dates</DialogTitle>
             <DialogDescription>
-              Mark dates unavailable on your calendar and for Circle peers.
+              Pick a unit, then the dates to mark unavailable.
             </DialogDescription>
           </DialogHeader>
           <form action={handleSubmit} className="space-y-4">
-            {units.length > 1 && (
-              <div className="space-y-2">
-                <Label>Unit</Label>
-                <Select value={propertyId} onValueChange={(v) => v && setPropertyId(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {units.length === 1 && selectedUnit && (
-              <p className="text-sm text-muted-foreground">Unit: {selectedUnit.name}</p>
-            )}
+            <div className="space-y-2">
+              <Label>Unit</Label>
+              <Select value={propertyId} onValueChange={(v) => v && setPropertyId(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit to block" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="block-start">From</Label>

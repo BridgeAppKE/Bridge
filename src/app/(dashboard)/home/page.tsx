@@ -1,3 +1,4 @@
+import { getExpenses } from "@/lib/actions/expenses-v2";
 import { getInventoryItems } from "@/lib/actions/inventory-v2";
 import { getCircleInvitations } from "@/lib/actions/circles";
 import { getAllVisibleBookings, getBookingsWithRevenue } from "@/lib/actions/bookings";
@@ -17,7 +18,7 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const profile = await getHostProfile();
 
-  const [inventoryRules, circleMembers, bookings, allBookings, hasIcal, activeTask] =
+  const [inventoryRules, circleMembers, bookings, allBookings, hasIcal, activeTask, expenses] =
     await Promise.all([
       getInventoryItems(),
       getCircleInvitations(),
@@ -25,6 +26,7 @@ export default async function HomePage() {
       getAllVisibleBookings(),
       userHasAnyIcalFeed(),
       getLatestActiveTask(),
+      getExpenses(),
     ]);
 
   const firstName =
@@ -41,6 +43,10 @@ export default async function HomePage() {
   const netRevenue = sumRevenueInRange(bookings, monthStart, now);
   const quarterRevenue = sumRevenueInRange(bookings, quarterStart, now);
   const yearRevenue = sumRevenueInRange(bookings, yearStart, now);
+
+  const spendMtd = expenses
+    .filter((e) => new Date(e.date) >= monthStart)
+    .reduce((sum, e) => sum + Number(e.amount_kes), 0);
 
   const acceptedMembers = circleMembers.filter((m) => m.status === "accepted");
 
@@ -105,6 +111,7 @@ export default async function HomePage() {
     yearRevenue,
     revenueTrend: buildRevenueTrendFromBookings(bookings),
     revenueChangePercent: revenueChangePercent(bookings),
+    spendMtd,
     inventoryAlerts,
     upcomingStays,
     pendingOpsJob,

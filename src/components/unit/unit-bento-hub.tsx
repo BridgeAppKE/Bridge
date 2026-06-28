@@ -11,13 +11,14 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { PanelTile } from "@/components/ui/glass-tile";
-import { RenamePropertyDialog } from "@/components/units/rename-property-dialog";
+import { EditUnitDialog } from "@/components/units/rename-property-dialog";
 import { pageShellClass, pageTitleClass, sectionLabelClass } from "@/lib/design/tokens";
 import { cn } from "@/lib/utils";
 
 interface UnitBentoHubProps {
   propertyId: string;
   propertyName: string;
+  baseRateKes: number;
   unitCount: number;
   lowStockCount: number;
   spendMtd: number;
@@ -64,6 +65,7 @@ function BentoLink({
 export function UnitBentoHub({
   propertyId,
   propertyName,
+  baseRateKes,
   unitCount,
   lowStockCount,
   spendMtd,
@@ -81,7 +83,11 @@ export function UnitBentoHub({
             <h1 className={cn(pageTitleClass, "truncate")} title={propertyName}>
               {propertyName}
             </h1>
-            <RenamePropertyDialog propertyId={propertyId} currentName={propertyName} />
+            <EditUnitDialog
+              propertyId={propertyId}
+              currentName={propertyName}
+              currentBaseRateKes={baseRateKes}
+            />
           </div>
         </div>
       </header>

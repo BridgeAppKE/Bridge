@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Property } from "@/lib/types/database";
 import { useUnitContext } from "@/components/layout/unit-context";
 import { PageShell, GlassSection } from "@/components/layout/page-shell";
 import { SyncButton } from "@/components/sync/sync-button";
 import { LastSynced } from "@/components/sync/last-synced";
-import { CircleSyncButton } from "@/components/sync/circle-sync-button";
-import { AddUnitDialog } from "@/components/units/add-unit-dialog";
 import { BlockDatesDialog } from "@/components/units/block-dates-dialog";
 import { GenerateInvoiceButton } from "@/components/bookings/generate-invoice-button";
 import { FinalizeBookingButton } from "@/components/bookings/finalize-booking-button";
 import { PlatformIcalSync } from "@/components/ical/platform-ical-sync";
 import { IcalExportPanel } from "@/components/ical/ical-export-panel";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 
 type BookingRow = {
   id: string;
@@ -38,8 +39,11 @@ export function CalendarClient({
   siteOrigin,
   etimsOptIn = false,
 }: CalendarClientProps) {
-  const { isAllUnits, selectedProperty, selectedUnitId } = useUnitContext();
+  const router = useRouter();
+  const { isAllUnits, selectedProperty } = useUnitContext();
   const [blockOpen, setBlockOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [syncTimes, setSyncTimes] = useState<Record<string, string | null>>(
     Object.fromEntries(units.map((u) => [u.id, u.last_synced_at]))
   );
@@ -48,13 +52,6 @@ export function CalendarClient({
     if (isAllUnits) return units[0] ?? null;
     return selectedProperty ?? units[0] ?? null;
   }, [isAllUnits, selectedProperty, units]);
-
-  const defaultPropertyId =
-    !isAllUnits && selectedUnitId !== "all" ? selectedUnitId : selected?.id;
-
-  useEffect(() => {
-    // keep block dialog unit in sync when header selection changes
-  }, [defaultPropertyId]);
 
   const unitBookings = useMemo(() => {
     if (isAllUnits) return [];
@@ -78,39 +75,29 @@ export function CalendarClient({
   return (
     <PageShell
       title="Calendar"
-      subtitle={
-        isAllUnits
-          ? "All units agenda — narrow header to manage one unit"
-          : `Schedule for ${selected?.name ?? "unit"}`
-      }
+      subtitle="Bookings, blocks, and channel sync"
       actions={
         units.length > 0 ? (
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <BlockDatesDialog
-              units={units}
-              defaultPropertyId={defaultPropertyId}
-              open={blockOpen}
-              onOpenChange={setBlockOpen}
-              showTrigger
-            />
-            <AddUnitDialog />
-            <CircleSyncButton />
-          </div>
-        ) : (
-          <AddUnitDialog />
-        )
+          <BlockDatesDialog
+            units={units}
+            open={blockOpen}
+            onOpenChange={setBlockOpen}
+            showTrigger
+            onBlocked={() => router.refresh()}
+          />
+        ) : undefined
       }
     >
       {units.length === 0 ? (
         <GlassSection>
           <p className="text-sm text-muted-foreground">
-            No units yet. Add your first unit to start syncing calendars.
+            No units yet. Add a unit from the Unit tab to get started.
           </p>
         </GlassSection>
       ) : isAllUnits ? (
         <GlassSection>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            All units agenda
+            All units
           </h2>
           <div className="space-y-4">
             {agendaGroups.map(({ unit, bookings: unitRows }) => (
@@ -149,62 +136,35 @@ export function CalendarClient({
         </GlassSection>
       ) : (
         <>
-          <GlassSection className="space-y-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground">{selected?.name}</p>
+          <GlassSection>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-foreground">{selected?.name}</p>
                 <LastSynced syncedAt={syncTimes[selected?.id ?? ""]} />
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {selected && (
-                  <SyncButton
-                    propertyId={selected.id}
-                    icalUrl={selected.ical_url}
-                    onSynced={(at) =>
-                      setSyncTimes((prev) => ({ ...prev, [selected.id]: at }))
-                    }
-                  />
-                )}
-              </div>
-            </div>
-            {!selected?.ical_url && (
-              <p className="text-xs text-muted-foreground">
-                Connect a calendar below to import bookings automatically.
-              </p>
-            )}
-          </GlassSection>
-
-          {selected && (
-            <>
-              <GlassSection>
-                <PlatformIcalSync
+              {selected && (
+                <SyncButton
                   propertyId={selected.id}
-                  onConnected={() => window.location.reload()}
+                  icalUrl={selected.ical_url}
+                  label="Import"
+                  onSynced={(at) =>
+                    setSyncTimes((prev) => ({ ...prev, [selected.id]: at }))
+                  }
                 />
-              </GlassSection>
-              {(selected as Property & { ical_export_token?: string }).ical_export_token && (
-                <GlassSection>
-                  <IcalExportPanel
-                    property={selected}
-                    exportUrl={`${siteOrigin}/api/units/${(selected as Property & { ical_export_token?: string }).ical_export_token}/ical`}
-                  />
-                </GlassSection>
               )}
-            </>
-          )}
+            </div>
 
-          <GlassSection>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              Bookings & Blocks
+              Bookings & blocks
             </h2>
             {unitBookings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No bookings or blocks for this unit.</p>
+              <p className="text-sm text-muted-foreground">Nothing scheduled yet.</p>
             ) : (
               <ul className="space-y-2">
                 {unitBookings.map((b) => (
                   <li
                     key={b.id}
-                    className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm"
                   >
                     <span>
                       {new Date(b.start_date).toLocaleDateString("en-KE", {
@@ -217,7 +177,7 @@ export function CalendarClient({
                         day: "numeric",
                       })}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {!b.is_manual_block && (
                         <>
                           <FinalizeBookingButton
@@ -244,6 +204,57 @@ export function CalendarClient({
               </ul>
             )}
           </GlassSection>
+
+          {selected && (
+            <>
+              <GlassSection className="p-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex h-auto w-full items-center justify-between rounded-xl px-4 py-3 text-left"
+                  onClick={() => setImportOpen((v) => !v)}
+                >
+                  <span className="text-sm font-medium">Import calendar (Airbnb / Booking.com)</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform ${importOpen ? "rotate-180" : ""}`}
+                  />
+                </Button>
+                {importOpen && (
+                  <div className="border-t border-border px-4 pb-4 pt-2">
+                    <PlatformIcalSync
+                      compact
+                      propertyId={selected.id}
+                      onConnected={() => router.refresh()}
+                    />
+                  </div>
+                )}
+              </GlassSection>
+
+              {(selected as Property & { ical_export_token?: string }).ical_export_token && (
+                <GlassSection className="p-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex h-auto w-full items-center justify-between rounded-xl px-4 py-3 text-left"
+                    onClick={() => setExportOpen((v) => !v)}
+                  >
+                    <span className="text-sm font-medium">Export to Airbnb</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 transition-transform ${exportOpen ? "rotate-180" : ""}`}
+                    />
+                  </Button>
+                  {exportOpen && (
+                    <div className="border-t border-border px-4 pb-4 pt-2">
+                      <IcalExportPanel
+                        property={selected}
+                        exportUrl={`${siteOrigin}/api/units/${(selected as Property & { ical_export_token?: string }).ical_export_token}/ical`}
+                      />
+                    </div>
+                  )}
+                </GlassSection>
+              )}
+            </>
+          )}
         </>
       )}
     </PageShell>

@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabaseEnv } from "@/lib/env";
+import { isAuthBypassEnabled, getDevUser } from "@/lib/auth/bypass";
+import { createServiceClient } from "@/lib/supabase/admin";
+import type { User } from "@supabase/supabase-js";
 
 export async function createClient() {
   const env = getSupabaseEnv();
@@ -29,4 +32,24 @@ export async function createClient() {
       },
     },
   });
+}
+
+/** DB client — service role when auth bypass is on (skips RLS). */
+export async function createDataClient() {
+  if (isAuthBypassEnabled()) {
+    return createServiceClient();
+  }
+  return createClient();
+}
+
+export async function getSessionUser(): Promise<User | null> {
+  if (isAuthBypassEnabled()) {
+    return getDevUser();
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
 }

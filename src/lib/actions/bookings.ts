@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 
 export type BookingInput = {
   external_uid?: string;
@@ -15,10 +15,8 @@ export async function upsertBookingsFromSync(
   propertyId: string,
   events: BookingInput[]
 ) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 
@@ -91,7 +89,7 @@ export async function blockDates(formData: FormData) {
 }
 
 export async function getBookingsForProperty(propertyId: string) {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
@@ -103,7 +101,7 @@ export async function getBookingsForProperty(propertyId: string) {
 }
 
 export async function getAllVisibleBookings() {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("bookings")
     .select("*, properties(name, owner_id)")
@@ -114,10 +112,8 @@ export async function getAllVisibleBookings() {
 }
 
 export async function finalizeBooking(bookingId: string, guestCount: number) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 
@@ -148,10 +144,8 @@ export async function finalizeBooking(bookingId: string, guestCount: number) {
 }
 
 export async function updateUnitLastSynced(propertyId: string, syncedAt: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 
@@ -167,7 +161,7 @@ export async function updateUnitLastSynced(propertyId: string, syncedAt: string)
 }
 
 export async function createInvoiceRecord(bookingId: string, totalAmount: number, pdfUrl?: string) {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("invoices").insert({
     booking_id: bookingId,
     total_amount: totalAmount,
@@ -179,7 +173,7 @@ export async function createInvoiceRecord(bookingId: string, totalAmount: number
 }
 
 export async function getBookingsWithRevenue() {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("bookings")
     .select("id, start_date, end_date, guest_count, is_manual_block, properties(name)")

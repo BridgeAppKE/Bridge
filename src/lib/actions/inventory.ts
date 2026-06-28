@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient } from "@/lib/supabase/server";
 import type { InventoryRule } from "@/lib/types/database";
 
 export async function createInventoryRule(formData: FormData) {
@@ -15,7 +15,7 @@ export async function createInventoryRule(formData: FormData) {
     return { error: "Unit, item name, and usage per guest are required." };
   }
 
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("inventory_rules").insert({
     property_id: propertyId,
     item_name: itemName,
@@ -37,7 +37,7 @@ export type InventoryRuleWithProperty = InventoryRule & {
 export async function getInventoryRules(
   propertyId?: string
 ): Promise<InventoryRuleWithProperty[]> {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
 
   let query = supabase
     .from("inventory_rules")
@@ -61,7 +61,7 @@ export async function simulateCheckout(formData: FormData) {
     return { error: "Select a property and enter at least 1 guest." };
   }
 
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { data: rules, error } = await supabase
     .from("inventory_rules")
     .select("*")
@@ -99,7 +99,7 @@ export async function simulateCheckout(formData: FormData) {
 }
 
 export async function deductInventoryForGuests(propertyId: string, guestCount: number) {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { data: rules, error } = await supabase
     .from("inventory_rules")
     .select("*")

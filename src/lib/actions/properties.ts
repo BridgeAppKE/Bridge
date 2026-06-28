@@ -1,14 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 import type { Property } from "@/lib/types/database";
 
 export async function getUserProperties(): Promise<Property[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return [];
 
@@ -23,10 +21,8 @@ export async function getUserProperties(): Promise<Property[]> {
 }
 
 export async function ensureDefaultProperty() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return null;
 
@@ -57,10 +53,8 @@ export async function createUnit(formData: FormData) {
 
   if (!name) return { error: "Unit name is required." };
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 

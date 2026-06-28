@@ -1,13 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 
 export async function mockSyncUnit(propertyId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 
@@ -49,10 +47,8 @@ export async function mockSyncUnit(propertyId: string) {
 }
 
 export async function getCircleVisibleUnits() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return [];
 

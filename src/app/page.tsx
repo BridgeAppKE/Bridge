@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/supabase/server";
+import { isAuthBypassEnabled } from "@/lib/auth/bypass";
 import { isSupabaseConfigured } from "@/lib/env";
 
 export default async function RootPage() {
@@ -7,10 +8,11 @@ export default async function RootPage() {
     redirect("/setup");
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (isAuthBypassEnabled()) {
+    redirect("/home");
+  }
+
+  const user = await getSessionUser();
 
   if (user) {
     redirect("/home");

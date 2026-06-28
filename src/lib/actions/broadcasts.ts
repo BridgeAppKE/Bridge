@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 
 export async function broadcastInquiry(formData: FormData) {
   const checkIn = formData.get("check_in") as string;
@@ -14,10 +14,8 @@ export async function broadcastInquiry(formData: FormData) {
     return { error: "Dates, guest count, and unit type are required." };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 

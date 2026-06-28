@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 import { getUserIdByEmail } from "@/lib/supabase/admin";
 import type { AvailabilityProperty, CircleMember } from "@/lib/types/database";
 
@@ -12,10 +12,8 @@ export async function inviteToCircle(formData: FormData) {
     return { error: "Email is required" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) {
     return { error: "You must be logged in" };
@@ -62,10 +60,8 @@ export async function inviteToCircle(formData: FormData) {
 }
 
 export async function acceptCircleInvite(circleId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 
@@ -82,10 +78,8 @@ export async function acceptCircleInvite(circleId: string) {
 }
 
 export async function getCircleMembers(): Promise<CircleMember[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return [];
 
@@ -120,10 +114,8 @@ export async function getCircleMembers(): Promise<CircleMember[]> {
 }
 
 export async function getAvailabilityList(): Promise<AvailabilityProperty[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return [];
 

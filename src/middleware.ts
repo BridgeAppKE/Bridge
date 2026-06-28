@@ -1,7 +1,20 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { isAuthBypassEnabled } from "@/lib/auth/bypass";
 
 export async function middleware(request: NextRequest) {
+  if (isAuthBypassEnabled()) {
+    if (
+      request.nextUrl.pathname === "/login" ||
+      request.nextUrl.pathname.startsWith("/auth")
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/home";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   return updateSession(request);
 }
 

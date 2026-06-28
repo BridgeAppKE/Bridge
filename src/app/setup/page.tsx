@@ -1,4 +1,5 @@
 import { isSupabaseConfigured, getRequestOrigin, getSiteUrl } from "@/lib/env";
+import { isAuthBypassEnabled } from "@/lib/auth/bypass";
 
 export default async function SetupPage() {
   const configured = isSupabaseConfigured();
@@ -26,6 +27,9 @@ export default async function SetupPage() {
             </ul>
           </>
         )}
+        <p className="text-xs text-muted-foreground">
+          Auth bypass: {isAuthBypassEnabled() ? "ON (dev mode)" : "off"}
+        </p>
         <p className="text-xs text-muted-foreground">
           Magic link redirect: {requestOrigin}/auth/callback
         </p>

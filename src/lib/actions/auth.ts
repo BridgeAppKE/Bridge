@@ -1,10 +1,18 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
+import { isAuthBypassEnabled } from "@/lib/auth/bypass";
 import { getRequestOrigin, isSupabaseConfigured } from "@/lib/env";
 
 export async function signInWithMagicLink(formData: FormData) {
+  if (isAuthBypassEnabled()) {
+    return {
+      success: true,
+      message: "Auth is bypassed in dev mode — go to /home",
+    };
+  }
+
   const email = formData.get("email") as string;
 
   if (!email) {
@@ -32,15 +40,15 @@ export async function signInWithMagicLink(formData: FormData) {
 }
 
 export async function signOut() {
+  if (isAuthBypassEnabled()) {
+    redirect("/home");
+  }
+
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
 
 export async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  return getSessionUser();
 }

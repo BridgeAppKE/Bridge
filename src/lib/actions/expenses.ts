@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDataClient, getSessionUser } from "@/lib/supabase/server";
 import type { Expense } from "@/lib/types/database";
 
 const EXPENSE_CATEGORIES = [
@@ -28,7 +28,7 @@ export async function createExpense(formData: FormData) {
     return { error: "All fields except receipt are required." };
   }
 
-  const supabase = await createClient();
+  const supabase = await createDataClient();
   const { error } = await supabase.from("expenses").insert({
     property_id: propertyId,
     amount_kes: amountKes,
@@ -51,7 +51,7 @@ export type ExpenseWithProperty = Expense & {
 export async function getExpenses(
   propertyId?: string
 ): Promise<ExpenseWithProperty[]> {
-  const supabase = await createClient();
+  const supabase = await createDataClient();
 
   let query = supabase
     .from("expenses")
@@ -74,10 +74,8 @@ export async function uploadReceipt(formData: FormData) {
     return { error: "No file provided" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
 
   if (!user) return { error: "Not authenticated" };
 

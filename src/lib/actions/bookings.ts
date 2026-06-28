@@ -99,6 +99,69 @@ export async function blockDates(formData: FormData) {
   ]);
 }
 
+export async function createManualBooking(formData: FormData) {
+  const propertyId = formData.get("property_id") as string;
+  const startDate = formData.get("start_date") as string;
+  const endDate = formData.get("end_date") as string;
+  const guestName = (formData.get("guest_name") as string)?.trim();
+  const guestPhone = (formData.get("guest_phone") as string)?.trim() || null;
+  const bedroomType = (formData.get("bedroom_type") as string) || null;
+  const amountRaw = formData.get("amount_kes") as string;
+  const paymentMethod = (formData.get("payment_method") as string) || null;
+  const notes = (formData.get("notes") as string)?.trim() || null;
+
+  if (!propertyId || !startDate || !endDate) {
+    return { error: "Unit and dates are required." };
+  }
+  if (!guestName) {
+    return { error: "Guest name is required." };
+  }
+  if (endDate <= startDate) {
+    return { error: "Check-out must be after check-in." };
+  }
+
+  const supabase = await createDataClient();
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: property } = await supabase
+    .from("properties")
+    .select("owner_id")
+    .eq("id", propertyId)
+    .single();
+
+  if (!property || property.owner_id !== user.id) {
+    return { error: "Unauthorized" };
+  }
+
+  const amountKes = amountRaw ? Number(amountRaw) : null;
+
+  const { error } = await supabase.from("bookings").insert({
+    property_id: propertyId,
+    start_date: startDate,
+    end_date: endDate,
+    is_manual_block: false,
+    guest_name: guestName,
+    guest_phone: guestPhone,
+    bedroom_type: bedroomType,
+    amount_kes: amountKes !== null && !isNaN(amountKes) ? amountKes : null,
+    payment_method: paymentMethod,
+    notes,
+  });
+
+  if (error) {
+    if (error.code === "42703") {
+      return { error: "Run migration 012_manual_booking_fields.sql" };
+    }
+    return { error: error.message };
+  }
+
+  revalidatePath("/calendar");
+  revalidatePath("/home");
+  revalidatePath("/circles");
+  return { success: true };
+}
+
 export async function clearManualBlock(bookingId: string) {
   const supabase = await createDataClient();
   const user = await getSessionUser();

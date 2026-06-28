@@ -8,6 +8,7 @@ import { PageShell, GlassSection } from "@/components/layout/page-shell";
 import { SyncButton } from "@/components/sync/sync-button";
 import { LastSynced } from "@/components/sync/last-synced";
 import { BlockDatesDialog } from "@/components/units/block-dates-dialog";
+import { AddBookingDialog } from "@/components/bookings/add-booking-dialog";
 import { GenerateInvoiceButton } from "@/components/bookings/generate-invoice-button";
 import { FinalizeBookingButton } from "@/components/bookings/finalize-booking-button";
 import { PlatformIcalSync } from "@/components/ical/platform-ical-sync";
@@ -24,6 +25,11 @@ type BookingRow = {
   end_date: string;
   is_manual_block: boolean;
   guest_count: number | null;
+  guest_name?: string | null;
+  guest_phone?: string | null;
+  bedroom_type?: string | null;
+  amount_kes?: number | null;
+  payment_method?: string | null;
   properties: { name: string; owner_id: string } | null;
 };
 
@@ -43,6 +49,7 @@ export function CalendarClient({
   const router = useRouter();
   const { isAllUnits, selectedProperty } = useUnitContext();
   const [blockOpen, setBlockOpen] = useState(false);
+  const [addBookingOpen, setAddBookingOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [syncTimes, setSyncTimes] = useState<Record<string, string | null>>(
@@ -79,13 +86,23 @@ export function CalendarClient({
       subtitle="Bookings, blocks, and channel sync"
       actions={
         units.length > 0 ? (
-          <BlockDatesDialog
-            units={units}
-            open={blockOpen}
-            onOpenChange={setBlockOpen}
-            showTrigger
-            onBlocked={() => router.refresh()}
-          />
+          <div className="flex items-center gap-2">
+            <AddBookingDialog
+              units={units}
+              defaultPropertyId={selected?.id}
+              open={addBookingOpen}
+              onOpenChange={setAddBookingOpen}
+              showTrigger
+              onAdded={() => router.refresh()}
+            />
+            <BlockDatesDialog
+              units={units}
+              open={blockOpen}
+              onOpenChange={setBlockOpen}
+              showTrigger
+              onBlocked={() => router.refresh()}
+            />
+          </div>
         ) : undefined
       }
     >
@@ -168,17 +185,28 @@ export function CalendarClient({
                     key={b.id}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm"
                   >
-                    <span>
-                      {new Date(b.start_date).toLocaleDateString("en-KE", {
-                        month: "short",
-                        day: "numeric",
-                      })}{" "}
-                      –{" "}
-                      {new Date(b.end_date).toLocaleDateString("en-KE", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
+                    <div>
+                      <span className="block">
+                        {new Date(b.start_date).toLocaleDateString("en-KE", {
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        –{" "}
+                        {new Date(b.end_date).toLocaleDateString("en-KE", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                      {!b.is_manual_block && b.guest_name && (
+                        <span className="block text-xs text-muted-foreground">
+                          {b.guest_name}
+                          {b.bedroom_type ? ` · ${b.bedroom_type}` : ""}
+                          {b.amount_kes != null
+                            ? ` · KES ${Number(b.amount_kes).toLocaleString()}`
+                            : ""}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-2">
                       {b.is_manual_block ? (
                         <ClearBlockButton bookingId={b.id} />

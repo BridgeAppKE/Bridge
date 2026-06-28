@@ -70,6 +70,12 @@ export interface Database {
           is_manual_block: boolean;
           guest_count: number | null;
           external_uid: string | null;
+          guest_name: string | null;
+          guest_phone: string | null;
+          bedroom_type: string | null;
+          amount_kes: number | null;
+          payment_method: string | null;
+          notes: string | null;
           created_at: string;
         };
         Insert: {
@@ -80,6 +86,12 @@ export interface Database {
           is_manual_block?: boolean;
           guest_count?: number | null;
           external_uid?: string | null;
+          guest_name?: string | null;
+          guest_phone?: string | null;
+          bedroom_type?: string | null;
+          amount_kes?: number | null;
+          payment_method?: string | null;
+          notes?: string | null;
           created_at?: string;
         };
         Update: {
@@ -90,6 +102,12 @@ export interface Database {
           is_manual_block?: boolean;
           guest_count?: number | null;
           external_uid?: string | null;
+          guest_name?: string | null;
+          guest_phone?: string | null;
+          bedroom_type?: string | null;
+          amount_kes?: number | null;
+          payment_method?: string | null;
+          notes?: string | null;
           created_at?: string;
         };
       };

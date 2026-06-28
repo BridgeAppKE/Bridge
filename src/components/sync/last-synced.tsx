@@ -18,16 +18,24 @@ function formatRelativeTime(iso: string | null | undefined): string {
   return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
 }
 
+function isStale(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const diffMin = (Date.now() - new Date(iso).getTime()) / 60000;
+  return diffMin > 40;
+}
+
 interface LastSyncedProps {
   syncedAt: string | null | undefined;
   className?: string;
 }
 
 export function LastSynced({ syncedAt, className }: LastSyncedProps) {
+  const stale = isStale(syncedAt);
   return (
     <p className={className ?? "text-xs text-muted-foreground"}>
       Last synced:{" "}
       <span className="font-medium text-foreground">{formatRelativeTime(syncedAt)}</span>
+      {stale && <span className="ml-1.5 font-medium text-amber-600">· Stale</span>}
     </p>
   );
 }

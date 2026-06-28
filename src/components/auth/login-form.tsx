@@ -5,6 +5,8 @@ import { signInWithMagicLink } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WireCard } from "@/components/ui/wire";
+import { wireSectionLabelClass } from "@/lib/design/tokens";
 
 export function LoginForm() {
   const [message, setMessage] = useState<string | null>(null);
@@ -28,10 +30,11 @@ export function LoginForm() {
   }
 
   return (
-    <div className="glass-panel w-full max-w-md p-6">
+    <WireCard className="w-full max-w-md">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-wide text-foreground">
-          Elite<span className="text-emerald-500 dark:text-emerald-400">Host</span>
+        <p className={wireSectionLabelClass}>Welcome</p>
+        <h1 className="text-2xl font-semibold text-foreground">
+          Elite<span className="text-primary">Host</span>
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Sign in with a magic link to manage your units.
@@ -47,25 +50,18 @@ export function LoginForm() {
             placeholder="host@example.com"
             required
             autoComplete="email"
-            className="bg-glass border-glass-border"
           />
         </div>
-        <Button
-          type="submit"
-          className="w-full bg-emerald-600 font-semibold tracking-wide hover:bg-emerald-700 dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
-          disabled={loading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Sending link…" : "Send Magic Link"}
         </Button>
       </form>
       {message && (
-        <p className="mt-4 text-center text-sm text-emerald-600 dark:text-emerald-400">
-          {message}
-        </p>
+        <p className="mt-4 text-center text-sm text-primary">{message}</p>
       )}
       {error && (
         <p className="mt-4 text-center text-sm text-destructive">{error}</p>
       )}
-    </div>
+    </WireCard>
   );
 }

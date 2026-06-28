@@ -7,31 +7,45 @@
     text-wrap: balance;
   }
 
+  .wire-panel {
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm;
+  }
+
   .glass-panel {
-    @apply backdrop-blur-lg rounded-3xl;
-    @apply border border-glass-border bg-glass;
-    @apply shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+    @apply wire-panel;
   }
 
   .bg-glass {
-    @apply bg-emerald-950/5 dark:bg-white/5;
+    @apply bg-muted/50;
   }
 
   .border-glass-border {
-    @apply border-emerald-950/10 dark:border-white/10;
+    @apply border-border;
   }
 
   .tap-scale {
-    @apply transition-transform duration-300 ease-out active:scale-[0.98];
+    @apply transition-transform duration-200 ease-out active:scale-[0.98];
+  }
+
+  .wire-divider {
+    @apply h-px w-full bg-border;
+  }
+
+  .wire-placeholder {
+    @apply rounded-lg bg-muted;
+  }
+
+  .wire-placeholder-text {
+    @apply h-2 rounded-full bg-muted;
   }
 }
 
 @layer base {
   :root {
-    --background: 60 9% 98%;
-    --foreground: 24 10% 10%;
-    --card: 60 9% 98%;
-    --card-foreground: 24 10% 10%;
+    --background: 0 0% 97%;
+    --foreground: 220 9% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 9% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 24 10% 10%;
     --primary: 164 86% 16%;
@@ -47,7 +61,7 @@
     --border: 24 6% 90%;
     --input: 24 6% 90%;
     --ring: 160 84% 39%;
-    --radius: 1rem;
+    --radius: 0.75rem;
     --glass-bg: rgba(6, 78, 59, 0.05);
     --glass-border: rgba(6, 78, 59, 0.1);
   }

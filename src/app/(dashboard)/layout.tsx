@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/actions/auth";
 import { isAuthBypassEnabled } from "@/lib/auth/bypass";
 import { Toaster } from "@/components/ui/sonner";
+import { wireAppShellClass } from "@/lib/design/tokens";
 
 export default async function DashboardLayout({
   children,
@@ -14,30 +15,20 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col bg-background">
-      <div
-        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(52,211,153,0.08)_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_rgba(52,211,153,0.08)_0%,_transparent_50%)]"
-        aria-hidden
-      />
-
-      <header className="relative z-40 px-4 pt-4 md:px-6">
-        <div className="glass-panel flex items-center justify-between rounded-2xl px-4 py-3">
+    <div className={wireAppShellClass}>
+      <header className="sticky top-0 z-40 border-b border-border bg-card px-4 py-3 md:px-6">
+        <div className="flex items-center justify-between">
           <Link
             href="/home"
-            className="text-lg font-semibold tracking-wide text-foreground"
+            className="text-lg font-semibold text-foreground"
           >
-            Elite<span className="text-emerald-500 dark:text-emerald-400">Host</span>
+            Elite<span className="text-primary">Host</span>
           </Link>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             {!isAuthBypassEnabled() && (
               <form action={signOut}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="submit"
-                  className="text-muted-foreground hover:bg-glass hover:text-foreground"
-                >
+                <Button variant="ghost" size="sm" type="submit">
                   Sign out
                 </Button>
               </form>
@@ -48,7 +39,7 @@ export default async function DashboardLayout({
 
       <DevAuthBanner />
 
-      <main className="relative z-10 flex-1 p-4 pb-28 md:p-6 md:pb-32">
+      <main className="flex-1 px-4 py-5 pb-24 md:px-6">
         <PageMotion>{children}</PageMotion>
       </main>
 

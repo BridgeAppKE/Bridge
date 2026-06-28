@@ -8,11 +8,12 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Download } from "lucide-react";
 import { GlassTile } from "@/components/ui/glass-tile";
+import { WireSectionHeader } from "@/components/ui/wire";
 import { cn } from "@/lib/utils";
 import { exportRowsToExcel } from "@/lib/export/to-excel";
-import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type RevenuePoint = { label: string; value: number };
 
@@ -53,33 +54,28 @@ export function FinancialTile({
     period === "month" ? "This month" : period === "quarter" ? "This quarter" : "This year";
 
   return (
-    <GlassTile
-      gridArea="md:col-span-2 md:row-span-1"
-      className="min-h-[160px] bg-emerald-900/50 dark:bg-emerald-900/50"
-      hoverScale={false}
-    >
+    <GlassTile gridArea="md:col-span-2 md:row-span-1" className="min-h-[160px]" hoverScale={false}>
       <div className="flex h-full flex-col justify-between">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              Net Revenue
-            </p>
-            <p className="mt-1 text-3xl font-semibold tracking-wide text-foreground">
-              {formatKes(displayRevenue)}
-            </p>
-            <p className="text-xs text-muted-foreground">{periodLabel}</p>
+            <WireSectionHeader
+              eyebrow="Revenue"
+              title={formatKes(displayRevenue)}
+              description={periodLabel}
+              className="mb-0"
+            />
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex rounded-full border border-glass-border bg-glass p-0.5">
+            <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
               {(["month", "quarter", "year"] as Period[]).map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setPeriod(p)}
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-[10px] font-medium capitalize transition-colors",
+                    "rounded-md px-2 py-0.5 text-[10px] font-medium capitalize transition-colors",
                     period === p
-                      ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                      ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground"
                   )}
                 >
@@ -87,7 +83,7 @@ export function FinancialTile({
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
+            <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs font-medium text-foreground">
               <TrendingUp className="h-3 w-3" />
               {changePercent >= 0 ? "+" : ""}
               {changePercent}%
@@ -95,14 +91,14 @@ export function FinancialTile({
           </div>
         </div>
 
-        <div className="mt-2 flex items-end justify-between gap-2">
+        <div className="mt-3 flex items-end justify-between gap-2">
           <div className="h-16 flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#34d399" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#34d399" stopOpacity={0} />
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="label" hide />
@@ -114,23 +110,25 @@ export function FinancialTile({
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#34d399"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   fill="url(#revenueGrad)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1 text-[10px]"
             onClick={() =>
               exportRowsToExcel(trend, "Revenue", "elitehost-revenue.xlsx")
             }
-            className="tap-scale flex items-center gap-1 rounded-full border border-glass-border bg-glass px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground"
           >
             <Download className="h-3 w-3" />
             Excel
-          </button>
+          </Button>
         </div>
       </div>
     </GlassTile>

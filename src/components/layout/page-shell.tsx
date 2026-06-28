@@ -4,7 +4,11 @@ import {
   pageShellClass,
   pageSubtitleClass,
   pageTitleClass,
+  wireCardClass,
+  wireListRowClass,
+  wireSectionLabelClass,
 } from "@/lib/design/tokens";
+import { WireSectionHeader } from "@/components/ui/wire";
 
 interface PageShellProps {
   title: string;
@@ -25,9 +29,7 @@ export function PageShell({
     <div className={cn(pageShellClass, className)}>
       <header className={cn(pageHeaderClass, "flex items-start justify-between gap-4")}>
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            EliteHost
-          </p>
+          <p className={wireSectionLabelClass}>EliteHost</p>
           <h1 className={pageTitleClass}>{title}</h1>
           {subtitle && <p className={pageSubtitleClass}>{subtitle}</p>}
         </div>
@@ -45,7 +47,7 @@ export function GlassSection({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <section className={cn("glass-panel p-5 md:p-6", className)}>{children}</section>;
+  return <section className={cn(wireCardClass, className)}>{children}</section>;
 }
 
 export function SectionHeader({
@@ -55,15 +57,7 @@ export function SectionHeader({
   title: string;
   description?: string;
 }) {
-  return (
-    <div className="mb-4 space-y-1">
-      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-      {description && (
-        <p className="text-sm text-muted-foreground">{description}</p>
-      )}
-    </div>
-  );
+  return <WireSectionHeader title={title} description={description} />;
 }
 
-export const listRowClass =
-  "rounded-xl border border-border/60 bg-background/40 p-3";
+export const listRowClass = wireListRowClass;

@@ -7,6 +7,7 @@ import type { CircleMemberDisplay } from "@/components/home/tiles/circles-hero-t
 import type { RevenuePoint } from "@/components/home/tiles/financial-tile";
 import type { InventoryAlert } from "@/components/home/tiles/inventory-alerts-tile";
 import type { CleanerJob } from "@/components/home/tiles/cleaner-activity-tile";
+import { wireSectionLabelClass } from "@/lib/design/tokens";
 
 export type HomeBentoData = {
   hostName: string;
@@ -22,12 +23,10 @@ export type HomeBentoData = {
 
 export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
   return (
-    <div className="space-y-6">
-      <header className="space-y-1 px-1">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          EliteHost
-        </p>
-        <h1 className="text-2xl font-semibold tracking-wide text-foreground">
+    <div className="space-y-5">
+      <header className="space-y-0.5">
+        <p className={wireSectionLabelClass}>Dashboard</p>
+        <h1 className="text-2xl font-semibold text-foreground">
           Karibu, {data.hostName}
         </h1>
       </header>

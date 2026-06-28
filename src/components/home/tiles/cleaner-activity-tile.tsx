@@ -1,7 +1,8 @@
 "use client";
 
-import { BadgeCheck, Sparkles } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { GlassTile } from "@/components/ui/glass-tile";
+import { WirePlaceholder, WireSectionHeader } from "@/components/ui/wire";
 
 export type CleanerJob = {
   id: string;
@@ -17,49 +18,37 @@ interface CleanerActivityTileProps {
 
 export function CleanerActivityTile({ job }: CleanerActivityTileProps) {
   return (
-    <GlassTile
-      gridArea="md:col-span-1 md:row-span-2"
-      className="min-h-[280px] bg-emerald-900/50"
-    >
-      <div className="mb-4">
-        <p className="text-xs font-medium uppercase tracking-widest text-emerald-200/80">
-          Operations
-        </p>
-        <h2 className="text-lg font-semibold tracking-wide text-emerald-50">
-          Cleaner Activity
-        </h2>
-      </div>
+    <GlassTile gridArea="md:col-span-1 md:row-span-2" className="min-h-[280px]">
+      <WireSectionHeader eyebrow="Operations" title="Cleaner Activity" />
 
       {!job ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <Sparkles className="h-8 w-8 text-emerald-400/40" />
-          <p className="text-sm text-emerald-200/70">No completed jobs yet.</p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
+          <WirePlaceholder aspectRatio="aspect-square" className="h-16 w-16" label="—" />
+          <p className="text-sm text-muted-foreground">No completed jobs yet.</p>
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-3">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-emerald-800/40">
+          <div className="relative overflow-hidden rounded-lg border border-border">
             {job.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={job.thumbnailUrl}
                 alt={`${job.propertyName} turnover`}
-                className="h-full w-full object-cover"
+                className="aspect-[4/3] w-full object-cover"
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-800/60 to-emerald-950/80">
-                <Sparkles className="h-10 w-10 text-emerald-400/30" />
-              </div>
+              <WirePlaceholder aspectRatio="aspect-[4/3]" label="Photo" />
             )}
             {job.verified && (
-              <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-emerald-400/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-950">
-                <BadgeCheck className="h-3.5 w-3.5" />
+              <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground shadow-sm">
+                <BadgeCheck className="h-3.5 w-3.5 text-primary" />
                 Verified
               </div>
             )}
           </div>
           <div>
-            <p className="font-medium text-emerald-50">{job.propertyName}</p>
-            <p className="text-xs text-emerald-200/70">{job.completedAt}</p>
+            <p className="font-medium text-foreground">{job.propertyName}</p>
+            <p className="text-xs text-muted-foreground">{job.completedAt}</p>
           </div>
         </div>
       )}

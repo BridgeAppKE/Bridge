@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   CalendarDays,
   CircleDot,
@@ -24,35 +23,29 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <nav className="glass-panel pointer-events-auto flex items-center gap-1 rounded-full px-2 py-2">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex max-w-lg items-stretch justify-around">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
-            <Link key={href} href={href} className="relative tap-scale">
-              {active && (
-                <motion.div
-                  layoutId="dock-pill"
-                  className="absolute inset-0 rounded-full border border-emerald-500/20 bg-emerald-500/15 dark:border-emerald-400/20 dark:bg-emerald-400/15"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "tap-scale relative flex flex-1 flex-col items-center gap-0.5 px-1 py-2.5",
+                "text-[10px] font-medium transition-colors",
+                active ? "text-primary" : "text-muted-foreground"
               )}
-              <span
-                className={cn(
-                  "relative flex flex-col items-center gap-0.5 rounded-full px-3 py-2",
-                  "text-[10px] font-medium tracking-wide transition-colors duration-300",
-                  active
-                    ? "text-emerald-700 dark:text-emerald-300"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className={cn("h-5 w-5", active && "stroke-[2.5]")} />
-                {label}
-              </span>
+            >
+              {active && (
+                <span className="absolute inset-x-2 top-0 h-0.5 rounded-full bg-primary" />
+              )}
+              <Icon className={cn("h-5 w-5", active && "stroke-[2.25]")} />
+              {label}
             </Link>
           );
         })}
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
 }

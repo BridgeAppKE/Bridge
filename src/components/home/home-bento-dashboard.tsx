@@ -3,6 +3,7 @@ import { CirclesHeroTile } from "@/components/home/tiles/circles-hero-tile";
 import { FinancialTile } from "@/components/home/tiles/financial-tile";
 import { InventoryAlertsTile } from "@/components/home/tiles/inventory-alerts-tile";
 import { IcalInactiveNudge } from "@/components/home/tiles/ical-inactive-nudge";
+import { CircleEmptyNudge } from "@/components/home/tiles/circle-empty-nudge";
 import { CleanerActivityTile } from "@/components/home/tiles/cleaner-activity-tile";
 import { HomeQuickActions } from "@/components/home/home-quick-actions";
 import type { CircleMemberDisplay } from "@/components/home/tiles/circles-hero-tile";
@@ -36,6 +37,7 @@ export type HomeBentoData = {
   upcomingStays: UpcomingStay[];
   pendingOpsJob: CleanerJob | null;
   showIcalNudge: boolean;
+  showCircleNudge: boolean;
 };
 
 export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
@@ -49,6 +51,7 @@ export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
       </header>
 
       {data.showIcalNudge && <IcalInactiveNudge />}
+      {data.showCircleNudge && <CircleEmptyNudge />}
 
       <PanelTile className="p-4">
         <CirclesHeroTile members={data.circleMembers} shortCode={data.shortCode} />

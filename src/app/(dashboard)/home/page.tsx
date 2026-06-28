@@ -1,6 +1,6 @@
 import { getExpenses } from "@/lib/actions/expenses-v2";
 import { getInventoryItems } from "@/lib/actions/inventory-v2";
-import { searchPeerAvailability } from "@/lib/actions/circles";
+import { searchPeerAvailability, getMyCircles } from "@/lib/actions/circles";
 import { groupPeerAvailabilityForHome } from "@/lib/circles/peer-availability";
 import { getAllVisibleBookings, getBookingsWithRevenue } from "@/lib/actions/bookings";
 import { getCurrentUser } from "@/lib/actions/auth";
@@ -26,7 +26,7 @@ export default async function HomePage() {
   weekOut.setDate(weekOut.getDate() + 7);
   const checkOut = weekOut.toISOString().slice(0, 10);
 
-  const [inventoryRules, peerSearch, bookings, allBookings, hasIcal, activeTask, expenses] =
+  const [inventoryRules, peerSearch, bookings, allBookings, hasIcal, activeTask, expenses, circles] =
     await Promise.all([
       getInventoryItems(),
       searchPeerAvailability(checkIn, checkOut),
@@ -35,6 +35,7 @@ export default async function HomePage() {
       userHasAnyIcalFeed(),
       getLatestActiveTask(),
       getExpenses(),
+      getMyCircles(),
     ]);
 
   const firstName =
@@ -103,6 +104,16 @@ export default async function HomePage() {
     !profile?.ical_nudge_dismissed_at &&
     profile?.onboarding_completed !== false;
 
+  const hasCircleMembers = circles.some((c) => c.member_count > 1);
+  const accountAgeDays = profile?.created_at
+    ? (now.getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)
+    : 0;
+  const showCircleNudge =
+    !hasCircleMembers &&
+    accountAgeDays >= 7 &&
+    !profile?.circle_nudge_dismissed_at &&
+    profile?.onboarding_completed !== false;
+
   const bentoData: HomeBentoData = {
     hostName: firstName,
     shortCode: profile?.short_code ?? null,
@@ -122,6 +133,7 @@ export default async function HomePage() {
     upcomingStays,
     pendingOpsJob,
     showIcalNudge,
+    showCircleNudge,
   };
 
   return <HomeScopedDashboard data={bentoData} />;

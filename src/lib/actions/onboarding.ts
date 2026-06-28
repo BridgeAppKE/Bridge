@@ -13,6 +13,8 @@ export type HostProfile = {
   onboarding_completed: boolean;
   ical_setup_deferred: boolean;
   ical_nudge_dismissed_at: string | null;
+  circle_nudge_dismissed_at: string | null;
+  created_at: string | null;
 };
 
 export async function getHostProfile(): Promise<HostProfile | null> {
@@ -23,7 +25,7 @@ export async function getHostProfile(): Promise<HostProfile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, legal_name, phone, kra_pin, short_code, onboarding_completed, ical_setup_deferred, ical_nudge_dismissed_at"
+      "id, full_name, legal_name, phone, kra_pin, short_code, onboarding_completed, ical_setup_deferred, ical_nudge_dismissed_at, circle_nudge_dismissed_at, created_at"
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -40,6 +42,8 @@ export async function getHostProfile(): Promise<HostProfile | null> {
         onboarding_completed: true,
         ical_setup_deferred: false,
         ical_nudge_dismissed_at: null,
+        circle_nudge_dismissed_at: null,
+        created_at: null,
       };
     }
     throw new Error(error.message);
@@ -140,6 +144,20 @@ export async function lookupHostByCode(code: string) {
 export async function inviteHostByCode(code: string) {
   const { inviteToCircleByCode } = await import("@/lib/actions/circles");
   return inviteToCircleByCode(code);
+}
+
+export async function dismissCircleNudge() {
+  const user = await getSessionUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const supabase = await createDataClient();
+  await supabase
+    .from("profiles")
+    .update({ circle_nudge_dismissed_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  revalidatePath("/home");
+  return { success: true };
 }
 
 export async function completeOnboarding() {

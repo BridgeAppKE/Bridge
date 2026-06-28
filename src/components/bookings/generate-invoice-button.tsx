@@ -16,6 +16,10 @@ interface GenerateInvoiceButtonProps {
   nightlyRate?: number;
   propertyId?: string;
   etimsOptIn?: boolean;
+  guestName?: string | null;
+  paymentMethod?: string | null;
+  transactionRef?: string | null;
+  kraPin?: string | null;
 }
 
 export function GenerateInvoiceButton({
@@ -27,6 +31,10 @@ export function GenerateInvoiceButton({
   nightlyRate = 8500,
   propertyId,
   etimsOptIn = false,
+  guestName,
+  paymentMethod,
+  transactionRef,
+  kraPin,
 }: GenerateInvoiceButtonProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -49,6 +57,10 @@ export function GenerateInvoiceButton({
           startDate,
           endDate,
           nightlyRate,
+          guestName,
+          paymentMethod,
+          transactionRef,
+          kraPin,
         });
       }
 

@@ -9,6 +9,10 @@ export type InvoiceData = {
   endDate: string;
   nightlyRate: number;
   hostName?: string;
+  guestName?: string | null;
+  paymentMethod?: string | null;
+  transactionRef?: string | null;
+  kraPin?: string | null;
 };
 
 export function generateInvoicePdf(data: InvoiceData): jsPDF {
@@ -33,11 +37,18 @@ export function generateInvoicePdf(data: InvoiceData): jsPDF {
   doc.setTextColor(30, 30, 30);
   doc.setFontSize(11);
   doc.text(`Unit: ${data.unitName}`, 14, 52);
-  doc.text(`Stay: ${data.startDate} to ${data.endDate}`, 14, 60);
-  doc.text(`Guests: ${data.guestCount}`, 14, 68);
+  doc.text(`Guest: ${data.guestName ?? "Guest"}`, 14, 60);
+  doc.text(`Stay: ${data.startDate} to ${data.endDate}`, 14, 68);
+  doc.text(`Guests: ${data.guestCount}`, 14, 76);
+  if (data.paymentMethod) {
+    doc.text(`Payment: ${data.paymentMethod}${data.transactionRef ? ` (Ref: ${data.transactionRef})` : ""}`, 14, 84);
+  }
+  if (data.kraPin) {
+    doc.text(`Host KRA PIN: ${data.kraPin}`, 14, 92);
+  }
 
   autoTable(doc, {
-    startY: 78,
+    startY: 100,
     head: [["Description", "Qty", "Rate (KES)", "Total (KES)"]],
     body: [
       [

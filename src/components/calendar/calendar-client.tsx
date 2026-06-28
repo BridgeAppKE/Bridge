@@ -38,6 +38,7 @@ interface CalendarClientProps {
   bookings: BookingRow[];
   siteOrigin: string;
   etimsOptIn?: boolean;
+  kraPin?: string | null;
 }
 
 export function CalendarClient({
@@ -45,6 +46,7 @@ export function CalendarClient({
   bookings,
   siteOrigin,
   etimsOptIn = false,
+  kraPin = null,
 }: CalendarClientProps) {
   const router = useRouter();
   const { isAllUnits, selectedProperty } = useUnitContext();
@@ -224,6 +226,9 @@ export function CalendarClient({
                             endDate={b.end_date}
                             propertyId={selected?.id}
                             etimsOptIn={etimsOptIn}
+                            guestName={b.guest_name}
+                            paymentMethod={b.payment_method}
+                            kraPin={kraPin}
                           />
                         </>
                       )}

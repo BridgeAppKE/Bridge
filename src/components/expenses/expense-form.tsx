@@ -40,7 +40,7 @@ export function ExpenseForm({ properties, categories }: ExpenseFormProps) {
   if (!properties.length) {
     return (
       <Button disabled size="lg" className="w-full">
-        Add a property first
+        Add a unit first
       </Button>
     );
   }
@@ -102,7 +102,7 @@ export function ExpenseForm({ properties, categories }: ExpenseFormProps) {
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Property</Label>
+            <Label>Unit</Label>
             <Select value={propertyId} onValueChange={(v) => v && setPropertyId(v)}>
               <SelectTrigger className="w-full">
                 <SelectValue />

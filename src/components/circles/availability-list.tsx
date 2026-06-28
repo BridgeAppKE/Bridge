@@ -1,12 +1,7 @@
 import type { AvailabilityProperty } from "@/lib/types/database";
+import { SectionHeader, listRowClass } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface AvailabilityListProps {
   properties: AvailabilityProperty[];
@@ -15,60 +10,54 @@ interface AvailabilityListProps {
 export function AvailabilityList({ properties }: AvailabilityListProps) {
   if (!properties.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Availability</CardTitle>
-          <CardDescription>
-            Add properties or connect with Circle members to see availability.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <SectionHeader
+        title="Availability"
+        description="Add units or connect with Circle members to see availability."
+      />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Combined Availability</CardTitle>
-        <CardDescription>
-          Your properties and Circle members&apos; listings (mock calendar data)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div>
+      <SectionHeader
+        title="Combined Availability"
+        description="Your units and Circle members' listings from synced bookings"
+      />
+      <div className="space-y-3">
         {properties.map((property) => (
-          <div
-            key={property.id}
-            className="rounded-lg border p-3"
-          >
+          <div key={property.id} className={listRowClass}>
             <div className="mb-2 flex items-start justify-between gap-2">
               <div>
-                <p className="font-medium">{property.name}</p>
+                <p className="font-medium text-foreground">{property.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {property.is_own
-                    ? "Your property"
+                    ? "Your unit"
                     : `Circle · ${property.owner_name ?? "Host"}`}
                 </p>
               </div>
               {property.is_own && (
-                <Badge variant="outline" className="shrink-0 border-emerald-200 text-emerald-700">
+                <Badge variant="outline" className="shrink-0 border-emerald-500/40 text-emerald-700 dark:text-emerald-300">
                   Yours
                 </Badge>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {property.mock_availability.map((date) => (
+              {property.mock_availability.map((label) => (
                 <Badge
-                  key={date}
+                  key={label}
                   variant="secondary"
-                  className="bg-emerald-50 text-emerald-800"
+                  className={cn(
+                    "bg-emerald-50 text-emerald-800",
+                    "dark:bg-emerald-950/40 dark:text-emerald-200"
+                  )}
                 >
-                  Open · {date}
+                  {label}
                 </Badge>
               ))}
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -3,16 +3,11 @@
 import { useTransition } from "react";
 import { acceptCircleInvite } from "@/lib/actions/circles";
 import type { CircleMember } from "@/lib/types/database";
+import { SectionHeader, listRowClass } from "@/components/layout/page-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface CircleMembersProps {
   members: CircleMember[];
@@ -34,24 +29,20 @@ export function CircleMembers({ members, currentUserId }: CircleMembersProps) {
 
   if (!members.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Your Circle</CardTitle>
-          <CardDescription>
-            No connections yet. Invite a fellow host to get started.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <SectionHeader
+        title="Your Circle"
+        description="No connections yet. Invite a fellow host to get started."
+      />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Your Circle</CardTitle>
-        <CardDescription>Trusted hosts in your network</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div>
+      <SectionHeader
+        title="Your Circle"
+        description="Trusted hosts in your network"
+      />
+      <div className="space-y-3">
         {members.map((member) => {
           const isIncoming =
             member.trusted_peer_id === currentUserId &&
@@ -60,16 +51,16 @@ export function CircleMembers({ members, currentUserId }: CircleMembersProps) {
           return (
             <div
               key={member.id}
-              className="flex items-center justify-between rounded-lg border p-3"
+              className={cn(listRowClass, "flex items-center justify-between")}
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                  <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200">
                     {initials(member.peer.full_name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium text-foreground">
                     {member.peer.full_name ?? "Unknown Host"}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -92,7 +83,7 @@ export function CircleMembers({ members, currentUserId }: CircleMembersProps) {
                   <Button
                     size="sm"
                     disabled={isPending}
-                    className="bg-emerald-600 hover:bg-emerald-700"
+                    className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-400 dark:text-emerald-950"
                     onClick={() =>
                       startTransition(async () => {
                         await acceptCircleInvite(member.id);
@@ -106,7 +97,7 @@ export function CircleMembers({ members, currentUserId }: CircleMembersProps) {
             </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

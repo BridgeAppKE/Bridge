@@ -1,11 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { SectionHeader, listRowClass } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
 
 type ExpenseWithProperty = {
   id: string;
@@ -31,29 +26,27 @@ function formatKes(amount: number) {
 export function ExpenseList({ expenses }: ExpenseListProps) {
   if (!expenses.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Recent Expenses</CardTitle>
-          <CardDescription>No expenses recorded yet.</CardDescription>
-        </CardHeader>
-      </Card>
+      <SectionHeader
+        title="Recent Expenses"
+        description="No expenses recorded yet."
+      />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Recent Expenses</CardTitle>
-        <CardDescription>Latest property costs</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div>
+      <SectionHeader
+        title="Recent Expenses"
+        description="Latest unit costs"
+      />
+      <div className="space-y-3">
         {expenses.map((expense) => (
           <div
             key={expense.id}
-            className="flex items-center justify-between rounded-lg border p-3"
+            className={cn(listRowClass, "flex items-center justify-between")}
           >
             <div>
-              <p className="font-medium">{expense.category}</p>
+              <p className="font-medium text-foreground">{expense.category}</p>
               <p className="text-xs text-muted-foreground">
                 {expense.properties?.name} ·{" "}
                 {new Date(expense.date).toLocaleDateString("en-KE", {
@@ -64,7 +57,7 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
               </p>
             </div>
             <div className="text-right">
-              <p className="font-semibold tabular-nums">
+              <p className="font-semibold tabular-nums text-foreground">
                 {formatKes(expense.amount_kes)}
               </p>
               {expense.receipt_url && (
@@ -75,7 +68,7 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

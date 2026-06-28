@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { simulateCheckout } from "@/lib/actions/inventory";
 import type { Property } from "@/lib/types/database";
+import { SectionHeader, listRowClass } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,13 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 interface SimulateCheckoutProps {
   properties: Property[];
@@ -54,72 +48,68 @@ export function SimulateCheckout({ properties }: SimulateCheckoutProps) {
   }
 
   return (
-    <Card className="border-dashed border-emerald-200 bg-emerald-50/30">
-      <CardHeader>
-        <CardTitle className="text-lg">Simulate Checkout</CardTitle>
-        <CardDescription>
-          Mock a guest checkout to deduct inventory based on your rules.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Property</Label>
-            <Select value={propertyId} onValueChange={(v) => v && setPropertyId(v)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {properties.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="guest_count">Number of guests</Label>
-            <Input
-              id="guest_count"
-              name="guest_count"
-              type="number"
-              min="1"
-              defaultValue="2"
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            variant="outline"
-            disabled={isPending}
-            className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-          >
-            {isPending ? "Processing…" : "Simulate Checkout"}
-          </Button>
-        </form>
-
-        {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
-
-        {result && (
-          <div className="mt-4 space-y-2 rounded-lg border bg-background p-3">
-            <p className="text-sm font-medium">
-              Deducted for {result.guestCount} guest(s):
-            </p>
-            <ul className="space-y-1 text-sm">
-              {result.updates.map((u) => (
-                <li key={u.item} className="flex justify-between">
-                  <span>{u.item}</span>
-                  <span className="tabular-nums text-muted-foreground">
-                    −{u.deducted.toFixed(1)} → {u.newStock.toFixed(1)}
-                    {u.low && " ⚠️"}
-                  </span>
-                </li>
+    <div>
+      <SectionHeader
+        title="Simulate Checkout"
+        description="Mock a guest checkout to deduct inventory based on your rules."
+      />
+      <form action={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label>Unit</Label>
+          <Select value={propertyId} onValueChange={(v) => v && setPropertyId(v)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {properties.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
               ))}
-            </ul>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="guest_count">Number of guests</Label>
+          <Input
+            id="guest_count"
+            name="guest_count"
+            type="number"
+            min="1"
+            defaultValue="2"
+            required
+          />
+        </div>
+        <Button
+          type="submit"
+          variant="outline"
+          disabled={isPending}
+          className="w-full border-emerald-500/40 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+        >
+          {isPending ? "Processing…" : "Simulate Checkout"}
+        </Button>
+      </form>
+
+      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+
+      {result && (
+        <div className={listRowClass + " mt-4 space-y-2"}>
+          <p className="text-sm font-medium text-foreground">
+            Deducted for {result.guestCount} guest(s):
+          </p>
+          <ul className="space-y-1 text-sm">
+            {result.updates.map((u) => (
+              <li key={u.item} className="flex justify-between">
+                <span>{u.item}</span>
+                <span className="tabular-nums text-muted-foreground">
+                  −{u.deducted.toFixed(1)} → {u.newStock.toFixed(1)}
+                  {u.low && " ⚠️"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

@@ -50,3 +50,31 @@ export async function ensureDefaultProperty() {
   revalidatePath("/home");
   return data;
 }
+
+export async function createUnit(formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  const icalUrl = (formData.get("ical_url") as string)?.trim() || null;
+
+  if (!name) return { error: "Unit name is required." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase.from("properties").insert({
+    owner_id: user.id,
+    name,
+    ical_url: icalUrl,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/calendar");
+  revalidatePath("/home");
+  revalidatePath("/inventory");
+  revalidatePath("/expenses");
+  return { success: true };
+}

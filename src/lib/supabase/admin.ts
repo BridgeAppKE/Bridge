@@ -1,11 +1,15 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/types/database";
+import { getSupabaseEnv } from "@/lib/env";
 
 export function createServiceClient() {
-  return createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
+  const env = getSupabaseEnv();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!env || !serviceKey) {
+    throw new Error("Supabase service credentials are not configured.");
+  }
+
+  return createSupabaseClient(env.url, serviceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,

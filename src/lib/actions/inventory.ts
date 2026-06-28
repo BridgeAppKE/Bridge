@@ -12,7 +12,7 @@ export async function createInventoryRule(formData: FormData) {
   const alertThreshold = parseFloat(formData.get("alert_threshold") as string);
 
   if (!propertyId || !itemName || isNaN(usagePerGuest)) {
-    return { error: "Property, item name, and usage per guest are required." };
+    return { error: "Unit, item name, and usage per guest are required." };
   }
 
   const supabase = await createClient();
@@ -96,4 +96,28 @@ export async function simulateCheckout(formData: FormData) {
 
   revalidatePath("/inventory");
   return { success: true, updates, guestCount };
+}
+
+export async function deductInventoryForGuests(propertyId: string, guestCount: number) {
+  const supabase = await createClient();
+  const { data: rules, error } = await supabase
+    .from("inventory_rules")
+    .select("*")
+    .eq("property_id", propertyId);
+
+  if (error) return { error: error.message };
+  if (!rules?.length) return { success: true };
+
+  for (const rule of rules) {
+    const deduction = rule.usage_per_guest * guestCount;
+    const newStock = Math.max(0, rule.current_stock - deduction);
+    await supabase
+      .from("inventory_rules")
+      .update({ current_stock: newStock })
+      .eq("id", rule.id);
+  }
+
+  revalidatePath("/inventory");
+  revalidatePath("/home");
+  return { success: true };
 }

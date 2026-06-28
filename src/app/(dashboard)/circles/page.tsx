@@ -6,6 +6,7 @@ import {
 import { InviteToCircleForm } from "@/components/circles/invite-form";
 import { CircleMembers } from "@/components/circles/circle-members";
 import { AvailabilityList } from "@/components/circles/availability-list";
+import { PageShell, GlassSection } from "@/components/layout/page-shell";
 
 export default async function CirclesPage() {
   const user = await getCurrentUser();
@@ -15,20 +16,19 @@ export default async function CirclesPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Circles</h1>
-        <p className="text-sm text-muted-foreground">
-          Your trusted host network in Nairobi
-        </p>
-      </div>
-
-      <InviteToCircleForm />
-      <CircleMembers
-        members={members}
-        currentUserId={user?.id ?? ""}
-      />
-      <AvailabilityList properties={availability} />
-    </div>
+    <PageShell
+      title="Circles"
+      subtitle="Your trusted host network in Kenya"
+    >
+      <GlassSection>
+        <InviteToCircleForm />
+      </GlassSection>
+      <GlassSection>
+        <CircleMembers members={members} currentUserId={user?.id ?? ""} />
+      </GlassSection>
+      <GlassSection>
+        <AvailabilityList properties={availability} />
+      </GlassSection>
+    </PageShell>
   );
 }

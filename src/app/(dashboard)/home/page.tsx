@@ -1,142 +1,87 @@
-import { getExpenses } from "@/lib/actions/expenses";
 import { getInventoryRules } from "@/lib/actions/inventory";
+import { getCircleMembers } from "@/lib/actions/circles";
+import { getBookingsWithRevenue } from "@/lib/actions/bookings";
 import {
   ensureDefaultProperty,
   getUserProperties,
 } from "@/lib/actions/properties";
 import { getCurrentUser } from "@/lib/actions/auth";
-import { Badge } from "@/components/ui/badge";
+import { HomeBentoDashboard } from "@/components/home/home-bento-dashboard";
+import type { HomeBentoData } from "@/components/home/home-bento-dashboard";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Package, Receipt, Users } from "lucide-react";
-
-function formatKes(amount: number) {
-  return new Intl.NumberFormat("en-KE", {
-    style: "currency",
-    currency: "KES",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+  buildRevenueTrendFromBookings,
+  revenueChangePercent,
+  sumRevenueInRange,
+} from "@/lib/revenue";
 
 export default async function HomePage() {
   await ensureDefaultProperty();
 
   const user = await getCurrentUser();
-  const [properties, expenses, inventoryRules] = await Promise.all([
+  const [properties, inventoryRules, circleMembers, bookings] = await Promise.all([
     getUserProperties(),
-    getExpenses(),
     getInventoryRules(),
+    getCircleMembers(),
+    getBookingsWithRevenue(),
   ]);
-
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount_kes, 0);
-  const lowStockItems = inventoryRules.filter(
-    (r) => r.current_stock <= r.alert_threshold
-  );
 
   const firstName =
     user?.user_metadata?.full_name?.split(" ")[0] ??
     user?.email?.split("@")[0] ??
     "Host";
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Karibu, {firstName}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Overview of your Nairobi rentals
-        </p>
-      </div>
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+  const yearStart = new Date(now.getFullYear(), 0, 1);
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Properties</CardDescription>
-            <CardTitle className="text-3xl">{properties.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Expenses (total)</CardDescription>
-            <CardTitle className="text-xl">{formatKes(totalExpenses)}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+  const netRevenue = sumRevenueInRange(bookings, monthStart, now);
+  const quarterRevenue = sumRevenueInRange(bookings, quarterStart, now);
+  const yearRevenue = sumRevenueInRange(bookings, yearStart, now);
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Package className="h-5 w-5 text-emerald-600" />
-            Inventory Alerts
-          </CardTitle>
-          <CardDescription>Items at or below threshold</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {lowStockItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">All stock levels OK</p>
-          ) : (
-            <ul className="space-y-2">
-              {lowStockItems.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span>{item.item_name}</span>
-                  <Badge variant="destructive">{item.current_stock} left</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+  const acceptedMembers = circleMembers.filter((m) => m.status === "accepted");
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Receipt className="h-5 w-5 text-emerald-600" />
-            Recent Expenses
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {expenses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No expenses yet — tap Expenses to add one.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {expenses.slice(0, 3).map((expense) => (
-                <li
-                  key={expense.id}
-                  className="flex justify-between text-sm"
-                >
-                  <span>{expense.category}</span>
-                  <span className="font-medium tabular-nums">
-                    {formatKes(expense.amount_kes)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+  const circleDisplay = acceptedMembers.slice(0, 3).map((member, index) => ({
+    id: member.id,
+    name: member.peer.full_name ?? "Circle Host",
+    status: `${2 + index} Units Available`,
+    unitsAvailable: 2 + index,
+  }));
 
-      <Card className="border-emerald-100 bg-emerald-50/40">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Users className="h-5 w-5 text-emerald-600" />
-            Circles
-          </CardTitle>
-          <CardDescription>
-            Connect with trusted hosts to share availability across Nairobi.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    </div>
-  );
+  const inventoryAlerts = inventoryRules
+    .map((rule) => {
+      const maxStock = Math.max(rule.current_stock, rule.alert_threshold, 1);
+      const percent = Math.round((rule.current_stock / maxStock) * 100);
+      return {
+        id: rule.id,
+        name: rule.item_name,
+        stockPercent: Math.min(percent, 100),
+        label: `${rule.current_stock} remaining · ${rule.properties?.name ?? "Unit"}`,
+      };
+    })
+    .sort((a, b) => a.stockPercent - b.stockPercent)
+    .slice(0, 4);
+
+  const primaryProperty = properties[0];
+
+  const bentoData: HomeBentoData = {
+    hostName: firstName,
+    circleMembers: circleDisplay,
+    netRevenue,
+    quarterRevenue,
+    yearRevenue,
+    revenueTrend: buildRevenueTrendFromBookings(bookings),
+    revenueChangePercent: revenueChangePercent(bookings),
+    inventoryAlerts,
+    latestCleanerJob: primaryProperty
+      ? {
+          id: "mock-1",
+          propertyName: primaryProperty.name,
+          completedAt: "Today · 11:42 AM · Turnover complete",
+          verified: true,
+        }
+      : null,
+  };
+
+  return <HomeBentoDashboard data={bentoData} />;
 }

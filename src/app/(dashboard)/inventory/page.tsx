@@ -1,3 +1,4 @@
+import { PageShell, GlassSection } from "@/components/layout/page-shell";
 import { getInventoryRules } from "@/lib/actions/inventory";
 import {
   ensureDefaultProperty,
@@ -15,17 +16,19 @@ export default async function InventoryPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-        <p className="text-sm text-muted-foreground">
-          Automate consumable tracking per guest checkout
-        </p>
-      </div>
-
-      <InventoryRuleForm properties={properties} />
-      <SimulateCheckout properties={properties} />
-      <InventoryList rules={rules} />
-    </div>
+    <PageShell
+      title="Inventory"
+      subtitle="Automate consumable tracking per guest checkout"
+    >
+      <GlassSection>
+        <InventoryRuleForm properties={properties} />
+      </GlassSection>
+      <GlassSection>
+        <SimulateCheckout properties={properties} />
+      </GlassSection>
+      <GlassSection>
+        <InventoryList rules={rules} />
+      </GlassSection>
+    </PageShell>
   );
 }

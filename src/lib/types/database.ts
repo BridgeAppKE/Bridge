@@ -38,6 +38,8 @@ export interface Database {
           owner_id: string;
           name: string;
           zodomus_property_id: string | null;
+          ical_url: string | null;
+          last_synced_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -45,6 +47,8 @@ export interface Database {
           owner_id: string;
           name: string;
           zodomus_property_id?: string | null;
+          ical_url?: string | null;
+          last_synced_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -52,6 +56,63 @@ export interface Database {
           owner_id?: string;
           name?: string;
           zodomus_property_id?: string | null;
+          ical_url?: string | null;
+          last_synced_at?: string | null;
+          created_at?: string;
+        };
+      };
+      bookings: {
+        Row: {
+          id: string;
+          property_id: string;
+          start_date: string;
+          end_date: string;
+          is_manual_block: boolean;
+          guest_count: number | null;
+          external_uid: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          property_id: string;
+          start_date: string;
+          end_date: string;
+          is_manual_block?: boolean;
+          guest_count?: number | null;
+          external_uid?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          property_id?: string;
+          start_date?: string;
+          end_date?: string;
+          is_manual_block?: boolean;
+          guest_count?: number | null;
+          external_uid?: string | null;
+          created_at?: string;
+        };
+      };
+      invoices: {
+        Row: {
+          id: string;
+          booking_id: string;
+          total_amount: number;
+          pdf_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          total_amount: number;
+          pdf_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          total_amount?: number;
+          pdf_url?: string | null;
           created_at?: string;
         };
       };
@@ -151,6 +212,8 @@ export interface Database {
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Property = Database["public"]["Tables"]["properties"]["Row"];
+export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
+export type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
 export type CircleNetwork = Database["public"]["Tables"]["circles_network"]["Row"];
 export type InventoryRule = Database["public"]["Tables"]["inventory_rules"]["Row"];
 export type Expense = Database["public"]["Tables"]["expenses"]["Row"];

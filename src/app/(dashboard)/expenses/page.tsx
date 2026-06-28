@@ -8,6 +8,8 @@ import {
 } from "@/lib/actions/properties";
 import { ExpenseForm } from "@/components/expenses/expense-form";
 import { ExpenseList } from "@/components/expenses/expense-list";
+import { ExportExpensesButton } from "@/components/expenses/export-expenses-button";
+import { PageShell, GlassSection } from "@/components/layout/page-shell";
 
 export default async function ExpensesPage() {
   await ensureDefaultProperty();
@@ -20,17 +22,15 @@ export default async function ExpensesPage() {
   const total = expenses.reduce((sum, e) => sum + e.amount_kes, 0);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Expenses</h1>
-        <p className="text-sm text-muted-foreground">
-          Track property costs in Kenyan Shillings
-        </p>
-      </div>
-
+    <PageShell
+      title="Expenses"
+      subtitle="Track unit costs in Kenyan Shillings"
+      actions={<ExportExpensesButton expenses={expenses} />}
+    >
       <ExpenseForm properties={properties} categories={categories} />
-      <ExpenseList expenses={expenses} />
-
+      <GlassSection>
+        <ExpenseList expenses={expenses} />
+      </GlassSection>
       {expenses.length > 0 && (
         <p className="text-center text-sm text-muted-foreground">
           Total recorded:{" "}
@@ -41,6 +41,6 @@ export default async function ExpensesPage() {
           }).format(total)}
         </p>
       )}
-    </div>
+    </PageShell>
   );
 }

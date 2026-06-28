@@ -5,8 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserIdByEmail } from "@/lib/supabase/admin";
 import type { AvailabilityProperty, CircleMember } from "@/lib/types/database";
 
-const MOCK_DATES = ["Jun 28", "Jun 29", "Jul 1", "Jul 3", "Jul 5"];
-
 export async function inviteToCircle(formData: FormData) {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
 
@@ -145,19 +143,41 @@ export async function getAvailabilityList(): Promise<AvailabilityProperty[]> {
 
   const profileMap = new Map(profiles?.map((p) => [p.id, p.full_name]) ?? []);
 
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("property_id, start_date, end_date")
+    .gte("end_date", new Date().toISOString().slice(0, 10));
+
+  const bookingsByProperty = new Map<string, { start_date: string; end_date: string }[]>();
+  bookings?.forEach((b) => {
+    const list = bookingsByProperty.get(b.property_id) ?? [];
+    list.push({ start_date: b.start_date, end_date: b.end_date });
+    bookingsByProperty.set(b.property_id, list);
+  });
+
   return properties.map((property) => {
     const isOwn = property.owner_id === user.id;
-    const offset = property.id.charCodeAt(0) % 3;
+    const propertyBookings = bookingsByProperty.get(property.id) ?? [];
+
+    const availabilityLabels =
+      propertyBookings.length > 0
+        ? propertyBookings.slice(0, 3).map(
+            (b) =>
+              `Booked · ${new Date(b.start_date).toLocaleDateString("en-KE", { month: "short", day: "numeric" })}`
+          )
+        : ["Open · Available now"];
 
     return {
       id: property.id,
       owner_id: property.owner_id,
       name: property.name,
       zodomus_property_id: property.zodomus_property_id,
+      ical_url: property.ical_url ?? null,
+      last_synced_at: property.last_synced_at ?? null,
       created_at: property.created_at,
       owner_name: profileMap.get(property.owner_id) ?? null,
       is_own: isOwn,
-      mock_availability: MOCK_DATES.slice(offset, offset + 3),
+      mock_availability: availabilityLabels,
     };
   });
 }

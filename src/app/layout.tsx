@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AppThemeProvider } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -18,19 +19,19 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "BnB+ | Property Management for Nairobi Hosts",
+  title: "EliteHost | Premium Property Management",
   description:
-    "Short-term rental management PWA for hosts in Kenya — inventory, expenses, Circles, and calendar.",
+    "Premium short-term rental PWA for Kenyan hosts — inventory, expenses, Circles, and calendar sync.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BnB+",
+    title: "EliteHost",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#022c22",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -43,11 +44,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AppThemeProvider>{children}</AppThemeProvider>
       </body>
     </html>
   );

@@ -67,7 +67,16 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+      },
+      letterSpacing: {
+        ios: "0.02em",
+        wide: "0.05em",
+        wider: "0.1em",
+        widest: "0.2em",
+      },
+      transitionTimingFunction: {
+        ios: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       },
     },
   },

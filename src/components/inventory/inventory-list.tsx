@@ -1,11 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { SectionHeader, listRowClass } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
 
 type InventoryRuleWithProperty = {
   id: string;
@@ -23,37 +18,37 @@ interface InventoryListProps {
 export function InventoryList({ rules }: InventoryListProps) {
   if (!rules.length) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Stock Levels</CardTitle>
-          <CardDescription>No inventory rules yet.</CardDescription>
-        </CardHeader>
-      </Card>
+      <SectionHeader
+        title="Stock Levels"
+        description="No inventory rules yet."
+      />
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Stock Levels</CardTitle>
-        <CardDescription>Current consumables across properties</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div>
+      <SectionHeader
+        title="Stock Levels"
+        description="Current consumables across units"
+      />
+      <div className="space-y-3">
         {rules.map((rule) => {
           const isLow = rule.current_stock <= rule.alert_threshold;
           return (
             <div
               key={rule.id}
-              className="flex items-center justify-between rounded-lg border p-3"
+              className={cn(listRowClass, "flex items-center justify-between")}
             >
               <div>
-                <p className="font-medium">{rule.item_name}</p>
+                <p className="font-medium text-foreground">{rule.item_name}</p>
                 <p className="text-xs text-muted-foreground">
                   {rule.properties?.name} · {rule.usage_per_guest}/guest
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-semibold tabular-nums">{rule.current_stock}</p>
+                <p className={cn("font-semibold tabular-nums", isLow && "text-destructive")}>
+                  {rule.current_stock}
+                </p>
                 {isLow && (
                   <Badge variant="destructive" className="mt-1 text-xs">
                     Low stock
@@ -63,7 +58,7 @@ export function InventoryList({ rules }: InventoryListProps) {
             </div>
           );
         })}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

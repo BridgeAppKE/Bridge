@@ -17,6 +17,14 @@ import { Button } from "@/components/ui/button";
 import { sectionLabelClass } from "@/lib/design/tokens";
 
 export type RevenuePoint = { label: string; value: number };
+export type BookingExportRow = {
+  Date: string;
+  "Guest Name": string;
+  Unit: string;
+  Nights: number;
+  Amount: number;
+  "Payment Method": string;
+};
 
 type Period = "month" | "quarter" | "year";
 
@@ -27,6 +35,7 @@ interface FinancialTileProps {
   trend: RevenuePoint[];
   changePercent: number;
   compact?: boolean;
+  exportRowsByPeriod?: Record<Period, BookingExportRow[]>;
 }
 
 function formatKes(amount: number) {
@@ -44,6 +53,7 @@ export function FinancialTile({
   trend,
   changePercent,
   compact = false,
+  exportRowsByPeriod,
 }: FinancialTileProps) {
   const [period, setPeriod] = useState<Period>("month");
 
@@ -148,9 +158,24 @@ export function FinancialTile({
             variant="outline"
             size="sm"
             className="h-7 gap-1 text-[10px]"
-            onClick={() =>
-              exportRowsToExcel(trend, "Revenue", "elitehost-revenue.xlsx")
-            }
+            onClick={() => {
+              const now = new Date();
+              const monthName = now.toLocaleDateString("en-KE", { month: "long" });
+              const bookingRows = exportRowsByPeriod?.[period];
+              if (bookingRows) {
+                exportRowsToExcel(
+                  bookingRows,
+                  "Revenue",
+                  `EliteHost_Revenue_${monthName}_${now.getFullYear()}.xlsx`
+                );
+              } else {
+                exportRowsToExcel(
+                  trend,
+                  "Revenue",
+                  `EliteHost_Revenue_${monthName}_${now.getFullYear()}.xlsx`
+                );
+              }
+            }}
           >
             <Download className="h-3 w-3" />
             Excel

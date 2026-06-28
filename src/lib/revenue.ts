@@ -75,6 +75,55 @@ export function buildRevenueTrendFromBookings(bookings: BookingLike[]) {
   });
 }
 
+export type BookingExportRow = {
+  Date: string;
+  "Guest Name": string;
+  Unit: string;
+  Nights: number;
+  Amount: number;
+  "Payment Method": string;
+};
+
+type BookingForExport = BookingLike & {
+  guest_name?: string | null;
+  payment_method?: string | null;
+  amount_kes?: number | null;
+};
+
+export function buildBookingExportRows(
+  bookings: BookingForExport[],
+  start: Date,
+  end: Date
+): BookingExportRow[] {
+  const rangeStart = startOfDay(start);
+  const rangeEnd = startOfDay(end);
+
+  return bookings
+    .filter((b) => {
+      if (b.is_manual_block) return false;
+      const checkout = parseDay(b.end_date);
+      return checkout >= rangeStart && checkout <= rangeEnd;
+    })
+    .map((b) => {
+      const props = Array.isArray(b.properties) ? b.properties[0] : b.properties;
+      const nights = Math.max(
+        1,
+        Math.ceil(
+          (parseDay(b.end_date).getTime() - parseDay(b.start_date).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      );
+      return {
+        Date: b.start_date,
+        "Guest Name": b.guest_name ?? "—",
+        Unit: (props as { name?: string } | null)?.name ?? "Unit",
+        Nights: nights,
+        Amount: b.amount_kes ?? bookingRevenue(b),
+        "Payment Method": b.payment_method ?? "—",
+      };
+    });
+}
+
 export function revenueChangePercent(bookings: BookingLike[]): number {
   const now = new Date();
   const today = startOfDay(now);

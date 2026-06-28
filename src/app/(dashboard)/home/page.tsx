@@ -13,6 +13,7 @@ import {
   buildRevenueTrendFromBookings,
   revenueChangePercent,
   sumRevenueInRange,
+  buildBookingExportRows,
 } from "@/lib/revenue";
 
 export default async function HomePage() {
@@ -111,6 +112,11 @@ export default async function HomePage() {
     yearRevenue,
     revenueTrend: buildRevenueTrendFromBookings(bookings),
     revenueChangePercent: revenueChangePercent(bookings),
+    exportRowsByPeriod: {
+      month: buildBookingExportRows(bookings, monthStart, now),
+      quarter: buildBookingExportRows(bookings, quarterStart, now),
+      year: buildBookingExportRows(bookings, yearStart, now),
+    },
     spendMtd,
     inventoryAlerts,
     upcomingStays,

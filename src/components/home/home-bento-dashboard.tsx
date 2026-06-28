@@ -6,7 +6,7 @@ import { IcalInactiveNudge } from "@/components/home/tiles/ical-inactive-nudge";
 import { CleanerActivityTile } from "@/components/home/tiles/cleaner-activity-tile";
 import { HomeQuickActions } from "@/components/home/home-quick-actions";
 import type { CircleMemberDisplay } from "@/components/home/tiles/circles-hero-tile";
-import type { RevenuePoint } from "@/components/home/tiles/financial-tile";
+import type { RevenuePoint, BookingExportRow } from "@/components/home/tiles/financial-tile";
 import type { InventoryAlert } from "@/components/home/tiles/inventory-alerts-tile";
 import type { CleanerJob } from "@/components/home/tiles/cleaner-activity-tile";
 import { PanelTile } from "@/components/ui/glass-tile";
@@ -30,6 +30,7 @@ export type HomeBentoData = {
   yearRevenue: number;
   revenueTrend: RevenuePoint[];
   revenueChangePercent: number;
+  exportRowsByPeriod?: Record<"month" | "quarter" | "year", BookingExportRow[]>;
   spendMtd: number;
   inventoryAlerts: InventoryAlert[];
   upcomingStays: UpcomingStay[];
@@ -60,6 +61,7 @@ export function HomeBentoDashboard({ data }: { data: HomeBentoData }) {
           yearRevenue={data.yearRevenue}
           trend={data.revenueTrend}
           changePercent={data.revenueChangePercent}
+          exportRowsByPeriod={data.exportRowsByPeriod}
         />
       </PanelTile>
 

@@ -328,7 +328,9 @@ export async function getBookingsWithRevenue() {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, start_date, end_date, guest_count, is_manual_block, properties(name, base_rate_kes)")
+    .select(
+      "id, start_date, end_date, guest_count, guest_name, payment_method, amount_kes, is_manual_block, properties(name, base_rate_kes)"
+    )
     .eq("is_manual_block", false)
     .order("start_date", { ascending: false });
 

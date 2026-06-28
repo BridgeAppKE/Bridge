@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   createExpense,
   parseMpesaStatement,
-  EXPENSE_CATEGORIES,
 } from "@/lib/actions/expenses-v2";
+import { EXPENSE_CATEGORIES } from "@/lib/expenses/constants";
 import type { MpesaParseResult } from "@/lib/parsers/expense-parsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

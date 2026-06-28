@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createDataClient, getSessionUser } from "@/lib/supabase/server";
+import { STATUS_CYCLE } from "@/lib/operations/constants";
 import type { OperationalTask } from "@/lib/types/database";
 
 export type TaskWithProperty = OperationalTask & {
@@ -53,8 +54,6 @@ export async function getLatestActiveTask(): Promise<TaskWithProperty | null> {
   );
 }
 
-export const TASK_TYPES = ["Cleaning", "Maintenance", "Restocking", "Other"] as const;
-
 export async function createOperationalTask(formData: FormData) {
   const user = await getSessionUser();
   if (!user) return { error: "Not authenticated" };
@@ -89,8 +88,6 @@ export async function createOperationalTask(formData: FormData) {
   revalidatePath("/home");
   return { success: true };
 }
-
-const STATUS_CYCLE = ["pending", "in_progress", "completed"] as const;
 
 export async function updateTaskStatus(
   taskId: string,

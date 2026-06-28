@@ -7,17 +7,8 @@ import {
   parseReceiptStub,
   parseReceiptWithClaude,
 } from "@/lib/parsers/expense-parsers";
+import { EXPENSE_CATEGORIES } from "@/lib/expenses/constants";
 import type { Expense } from "@/lib/types/database";
-
-export const EXPENSE_CATEGORIES = [
-  "Supplies",
-  "Maintenance",
-  "Utilities",
-  "Cleaning",
-  "Marketing",
-  "Platform Fees",
-  "Other",
-] as const;
 
 export async function getExpenseCategories() {
   return EXPENSE_CATEGORIES;

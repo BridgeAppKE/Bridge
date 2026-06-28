@@ -6,8 +6,8 @@ import {
   createSplitExpenses,
   parseMpesaStatement,
   uploadReceipt,
-  EXPENSE_CATEGORIES,
 } from "@/lib/actions/expenses-v2";
+import { EXPENSE_CATEGORIES } from "@/lib/expenses/constants";
 import type { MpesaParseResult } from "@/lib/parsers/expense-parsers";
 import { consumeReceiptOcrCredit } from "@/lib/actions/receipt-ocr";
 import { Button } from "@/components/ui/button";

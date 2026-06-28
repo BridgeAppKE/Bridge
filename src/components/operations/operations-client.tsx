@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createOperationalTask, updateTaskStatus, TASK_TYPES } from "@/lib/actions/operations";
+import { createOperationalTask, updateTaskStatus } from "@/lib/actions/operations";
+import { TASK_TYPES } from "@/lib/operations/constants";
 import type { TaskWithProperty } from "@/lib/actions/operations";
 import type { Property } from "@/lib/types/database";
 import { SectionHeader } from "@/components/layout/page-shell";
